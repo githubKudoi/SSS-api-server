@@ -9,8 +9,8 @@ router.post('/edit', controller.editProfile)
 router.post('/option', controller.option)
 router.post('/logout', controller.logout)
 
-router.get('/', controller.profile)
 router.get('/stats', controller.stats)
+router.get('/', controller.profile)
 
 // get planlist
 // logout

@@ -10,9 +10,6 @@ const userprofile = require('./userprofile')
 const router = express.Router()
 router.use(express.urlencoded({extended: false}))
 
-router.get('/', (req, res) => {
-    res.json("Hello world!")
-})
 router.use('/auth', auth)
 router.use('/friend', friend)
 router.use('/group', group)
@@ -20,5 +17,7 @@ router.use('/map', map)
 router.use('/memo', memo)
 router.use('/plan', plan)
 router.use('/userprofile', userprofile)
-
+router.get('/', (req, res) => {
+    res.json("Hello world!")
+})
 module.exports = router
