@@ -11,7 +11,7 @@ exports.keyword = async (longitude, latitude) => {
 exports.myLocation = async (longitude, latitude) => {
 }
 
-exports.location = async (uid, pid) => {
+exports.location = async (userid, pid) => {
 }
 
 exports.eta = async (startAddress, destAddress) => {
