@@ -1,10 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const express = require('express')
+const axios = require('axios')
 
 const googleDistanceApiConfig = require('../lib/config/googlemap').config
-const google = require('google-distance-matrix')
 
 exports.popularity = async () => {
     // 데이터분석
@@ -40,7 +39,7 @@ exports.myLocation = async (longitude, latitude) => {
     }
 }
 
-exports.location = async (pid) => {
+exports.location = async (pid) => { // eta랑 합치기
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -68,36 +67,18 @@ exports.location = async (pid) => {
 
 exports.eta = async (start_latitude, start_longitude, destination_latitude, destination_longitude) => {
     try {
-        /*
         const reqestUrl = googleDistanceApiConfig.url +
         "origins=" + start_latitude + "," + start_longitude +
         "&destinations=" + destination_latitude + "," + destination_longitude +
         "&region=" + googleDistanceApiConfig.region +
         "&key=" + googleDistanceApiConfig.key
 
-        const app = express()
-        app.use(express.urlencoded({extended: false}))
-        app.get(reqestUrl, (req, res) => {
-            console.log("result: " + JSON.stringify(res))
-            console.log("result: " + res)
-        })
-
+        const result = await axios.get(reqestUrl)
         
+        if(result.data.status !== 'OK')
+            throw result.data.error_message
 
-        if (result.status != 'OK')
-            throw result.error_message
-        
-        console.log(result.rows.elements.duration.text)
-        return res.timeResponse(0, result.rows.elements.duration.text)
-        */
-
-        const origin = [35.870788, 128.595515]
-        const destination = [35.870366, 128.598569]
-        google.key(googleDistanceApiConfig.key)
-        google.language(googleDistanceApiConfig.region)
-        const result = google.matrix(origin, destination)
-
-        console.log(result)
+        return res.timeResponse(0, result.data.rows[0].elements[0].duration.text)
     } catch (err) {
         console.log(err)
         return res.timeResponse(-1)
