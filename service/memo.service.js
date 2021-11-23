@@ -33,7 +33,7 @@ exports.deleteMemo = async (userid, pid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.deleteMemo, userid, pid)
+            const [queryResult] = await db.query(queryStr.deleteMemo, [userid, pid])
             db.release()
 
             if (queryResult.affectedRows == 0)

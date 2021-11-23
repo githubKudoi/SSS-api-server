@@ -165,11 +165,11 @@ exports.cancelPlan = async (pid, userid) => {
     }
 }
 
-exports.publicPlan = async (pid, userid) => {
+exports.publicPlan = async (pid, visibility) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.publicPlan, [userid, pid])
+            const [queryResult] = await db.query(queryStr.setPlanVisibility, [pid, visibility])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -230,7 +230,6 @@ exports.listPlan = async (userid, is_current) => {
 
             return res.planResponse(0, queryResult)
         } catch (err) { 
-            
             db.release()
             console.log("Query error")
             return res.planResponse(-1, nullplan)

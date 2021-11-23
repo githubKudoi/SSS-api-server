@@ -7,7 +7,6 @@ const profile = require('../service/userprofile.service')
 
 exports.login = async (userid, password) => {
     const nulluser = datatype.user()
-    
     try {
         let result = await this.matchUserid(userid)
 
@@ -73,7 +72,6 @@ exports.register = async (userid, password, nickname) => {
 
 exports.searchUserid = async (userid) => {
     const nulluser = datatype.user()
-    
     try {
         const db = await rds.getConnection(async conn => conn)
         try {

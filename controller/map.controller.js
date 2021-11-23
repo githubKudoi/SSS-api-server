@@ -1,7 +1,6 @@
 const service = require('../service/map.service')
 
 exports.popularity = async (req, res) => {
-    const body = req.body
     const serverResponse = await service.popularity()
     
     res.json(serverResponse)

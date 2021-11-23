@@ -73,7 +73,7 @@ exports.publicPlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.publicPlan(
         body.pid,
-        body.userid
+        body.visibility
     )
     
     res.json(serverResponse)
