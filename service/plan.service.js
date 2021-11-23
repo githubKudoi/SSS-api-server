@@ -1,6 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
+const datatype = require('../lib/type')
 
 exports.createPlan = async (name, date, start_time, end_time, location, category, creator) => {
     try {
@@ -217,6 +218,7 @@ exports.deletePlan = async (pid) => {
 }
 
 exports.listPlan = async (userid, is_current) => {
+    const nullplan = datatype.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -226,19 +228,21 @@ exports.listPlan = async (userid, is_current) => {
                 const [queryResult] = await db.query(queryStr.listPrevPlan, userid)
             db.release()
 
-            return res.planResponse([queryResult])
+            return res.planResponse(0, queryResult)
         } catch (err) { 
+            
             db.release()
             console.log("Query error")
-            return res.planResponse()
+            return res.planResponse(-1, nullplan)
         }
     } catch (err) {
         console.log("DB error")
-        return res.planResponse()
+        return res.planResponse(-1, nullplan)
     }
 }
 
 exports.detailsPlan = async (pid) => {
+    const nullplan = datatype.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -246,35 +250,40 @@ exports.detailsPlan = async (pid) => {
             db.release()
 
             if (queryResult.length == 0)
-                throw -1
+                throw 1
 
-            return res.planResponse(queryResult)
+            return res.planResponse(0, queryResult)
         } catch (err) { 
             db.release()
+            if (err == 1) {
+                console.log("Nothing affected")
+                return res.planResponse(1, nullplan)
+            }
             console.log("Query error")
-            return res.planResponse()
+            return res.planResponse(-1, nullplan)
         }
     } catch (err) {
         console.log("DB error")
-        return res.planResponse()
+        return res.planResponse(-1, nullplan)
     }
 }
 
 exports.partlist = async (pid) => {
+    const nulluser = datatype.user()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
             const [queryResult] = await db.query(queryStr.listParticipant, pid)
             db.release()
 
-            return res.userResponse(queryResult)
+            return res.userResponse(0, queryResult)
         } catch (err) { 
             db.release()
             console.log("Query error")
-            return res.userResponse()
+            return res.userResponse(-1, nulluser)
         }
     } catch (err) {
         console.log("DB error")
-        return res.userResponse()
+        return res.userResponse(-1, nulluser)
     }
 }

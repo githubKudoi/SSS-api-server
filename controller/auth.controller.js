@@ -18,3 +18,11 @@ exports.register = async (req, res) => {
     
     res.json(serverResponse)
 }
+
+exports.user = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.searchUserid(
+        body.userid)
+    
+    res.json(serverResponse)
+}

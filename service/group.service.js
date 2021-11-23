@@ -55,7 +55,7 @@ exports.editGroup = async (gid, name, explanation, color) => {
     }
 }
 
-exports.inviteGroup = async (gid, target_userid_list) => { // 푸시알림 미구현
+exports.inviteGroup = async (gid, target_userid_list) => {
     try {
         // 푸시알림 동작 코드
 
@@ -136,6 +136,7 @@ exports.deleteGroup = async (gid) => {
 }
 
 exports.listGroup = async (userid) => {
+    const nullgroup = datatype.group()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -146,11 +147,11 @@ exports.listGroup = async (userid) => {
         } catch (err) { 
             db.release()
             console.log("Query error")
-            return res.groupResponse(-1)
+            return res.groupResponse(-1, nullgroup)
         }
     } catch (err) {
         console.log("DB error")
-        return res.groupResponse()
+        return res.groupResponse(-1, nullgroup)
     }
 }
 

@@ -1,7 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-let datatype = require('../lib/type')
+const datatype = require('../lib/type')
 
 exports.searchUser = async (userid_or_nickname) => {
     const nulluser = datatype.user()
@@ -22,7 +22,7 @@ exports.searchUser = async (userid_or_nickname) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Uid and uname unmatch")
+                console.log("Userid and uname unmatch")
                 return res.userResponse(1, nulluser)
             }
             console.log("Query error")
@@ -113,20 +113,22 @@ exports.deleteFriend = async (userid, target_userid) => {
 }
 
 exports.listFriend = async (userid) => {
+    const nulluser = datatype.user()
+
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
             const [queryResult] = await db.query(queryStr.listFriend, userid)
             db.release()
 
-            return res.userResponse([queryResult])
+            return res.userResponse(0, queryResult)
         } catch (err) {
             db.release()
             console.log("Query error")
-            return res.userResponse(-1)
+            return res.userResponse(-1, nulluser)
         }
     } catch (err) {
         console.log("DB error")
-        return res.userResponse(-1)
+        return res.userResponse(-1, nulluser)
     }
 }

@@ -3,7 +3,7 @@ const service = require('../service/memo.service')
 exports.createMemo = async (req, res) => {
     const body = req.body
     const serverResponse = await service.createMemo(
-        body.uid,
+        body.userid,
         body.pid,
         body.memo
         )
@@ -14,7 +14,7 @@ exports.createMemo = async (req, res) => {
 exports.deleteMemo = async (req, res) => {
     const body = req.body
     const serverResponse = await service.deleteMemo(
-        body.uid,
+        body.userid,
         body.pid
     )
     
@@ -24,7 +24,6 @@ exports.deleteMemo = async (req, res) => {
 exports.listMemo = async (req, res) => {
     const body = req.body
     const serverResponse = await service.listMemo(
-        body.uid,
         body.pid
     )
     

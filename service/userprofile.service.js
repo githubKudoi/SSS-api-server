@@ -2,6 +2,7 @@ const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const datatype = require('../lib/type')
+const multer = require('multer')
 
 exports.createProfile = async (userid, nickname, username, age, gender, image) => {
     try {
@@ -44,6 +45,45 @@ exports.editProfile = async (userid, nickname, username, age, gender, image) => 
             db.release()
             if (err == 1) {
                 console.log("Nothing affected")
+                return res.genericResponse(1)
+            }
+            console.log("Query error")
+            return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log("DB error")
+        return res.genericResponse(-1)
+    }
+}
+
+exports.image = async (image) => {
+    try {
+        const db = await rds.getConnection(async conn => conn)
+        try {
+            const file = image
+
+            if (!file)
+                throw 2
+
+            const originalName = file.originalName
+            const filename = file.filename
+            const mimeType = file.mimeType
+            const size = file.size
+
+            const [queryResult] = await db.query(queryStr) // 이미지 설정 쿼리문
+
+            if (queryResult.affectedRows == 0)
+                throw 1
+            db.release()
+            return res.genericResponse(0)
+        } catch (err) {
+            db.release()
+            if (err == 1) {
+                console.log("Nothing affected")
+                return res.genericResponse(1)
+            }
+            if (err == 2) {
+                console.log("Image not found")
                 return res.genericResponse(1)
             }
             console.log("Query error")
