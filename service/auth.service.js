@@ -17,13 +17,13 @@ exports.login = async (userid, password) => {
         if (result.code != 0)
             throw result.code
         else
-            const userResult = await this.searchUserid(userid)
+            result = await this.searchUserid(userid)
 
         const user = datatype.user(
-            userResult.user.userid,
-            userResult.user.username,
-            userResult.user.isOnline,
-            userResult.user.isAttend)
+            result.user.userid,
+            result.user.username,
+            result.user.isOnline,
+            result.user.isAttend)
 
         return res.userResponse(0, user)
     } catch (err) {

@@ -222,10 +222,11 @@ exports.listPlan = async (userid, is_current) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
+            let queryResult
             if (is_current)
-                const [queryResult] = await db.query(queryStr.listCurrentPlan, userid)
+                [queryResult] = await db.query(queryStr.listCurrentPlan, userid)
             else
-                const [queryResult] = await db.query(queryStr.listPrevPlan, userid)
+                [queryResult] = await db.query(queryStr.listPrevPlan, userid)
             db.release()
 
             return res.planResponse(0, queryResult)
