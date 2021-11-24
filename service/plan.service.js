@@ -264,12 +264,7 @@ exports.listPlan = async (userid, is_current) => {
                 [queryResult] = await db.query(queryStr.listPrevPlan, userid)
             db.release()
 
-            let planResult = new Array()
-            for (let value in queryResult) {
-                console.log(value.pid, value.planname, value.start_time)
-                planResult.push(type.plan(value.pid, value.planname, value.start_time, value.end_time, value.place_name, value.category, null, null, null))
-            }
-            console.log("planResult " + planResult[0], planResult[1])
+            console.log(queryResult)
 
             if (queryResult[0].length == 0)
                 return res.planResponse(1, nullplan)
