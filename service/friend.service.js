@@ -2,35 +2,39 @@ const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const datatype = require('../lib/type')
+const auth = require('./auth.service')
 
 exports.searchUser = async (userid_or_nickname) => {
-    const nulluser = datatype.user()
-
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.searchUserid, [userid_or_nickname])
+            let result = await auth.matchUserid(userid_or_nickname)
+            if (result.code == 0){
+                let [queryResult] = await db.query(queryStr.getUser, [userid_or_nickname])
+                db.release()
+                return res.userResponse(0, queryResult[0])
+            }
 
-            if (queryResult.length == 0)
-                queryResult = await db.query(queryStr.searchNickname, [userid_or_nickname])
-            db.release()
-
-            if (queryResult.length == 0)
+            result = await auth.matchNickname(userid_or_nickname) 
+            if (result.code !== 0)
                 throw 1
 
-            return res.userResponse(0, queryResult)
+            let [queryResult] = await db.query(queryStr.getUser, [userid_or_nickname])
+            
+            db.release()
+            return res.userResponse(0, queryResult[0])
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Userid and uname unmatch")
-                return res.userResponse(1, nulluser)
+                console.log("Userid or nickname unmatch")
+                return res.userResponse(1, null)
             }
-            console.log("Query error")
-            return res.userResponse(-1, nulluser)
+            console.log("Query error, " + err)
+            return res.userResponse(-1, null)
         }
     } catch (err) {
         console.log("DB error")
-        return res.userResponse(-1, nulluser)
+        return res.userResponse(-1, null)
     }
 }
 

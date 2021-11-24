@@ -1,12 +1,10 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-let datatype = require('../lib/type')
-
-const profile = require('../service/userprofile.service')
+const fcm = require('../lib/config/fcm')
+const { messaging } = require('firebase-admin')
 
 exports.login = async (userid, password) => {
-    const nulluser = datatype.user()
     try {
         let result = await this.matchUserid(userid)
 
@@ -19,46 +17,40 @@ exports.login = async (userid, password) => {
         else
             result = await this.searchUserid(userid)
 
-        const user = datatype.user(
-            result.user.userid,
-            result.user.username,
-            result.user.isOnline,
-            result.user.isAttend)
-
-        return res.userResponse(0, user)
+        return res.userResponse(0, result)
     } catch (err) {
         if (err == 1) {
             console.log("ID or Password unmatch.")
-            return res.userResponse(1, nulluser)
+            return res.userResponse(1, null)
         }
-        return res.userResponse(-1, nulluser)
+        return res.userResponse(-1, null)
     }
 }
 
 exports.register = async (userid, password, nickname) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             let result = await this.matchUserid(userid)
-            if (result.code != 0)
-                throw result.code
+            if (result.code !== 1)
+                throw 2
 
-            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname])
+            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname, 0])
             db.release()
-            
+
             if (queryResult.affectedRows == 0)
                 throw 1
 
-            result = await profile.createProfile(userid, nickname)
-
-            if (result.code != 0)
-                throw result.code
-
+            console.log("User created")
             return res.genericResponse(0)
         } catch (err) {
             db.release()
             if (err == 1) {
                 console.log("Nothing affected")
+                return res.genericResponse(1)
+            }
+            if (err == 2) {
+                console.log("ID duplicate")
                 return res.genericResponse(1)
             }
             console.log("Query error")
@@ -71,29 +63,29 @@ exports.register = async (userid, password, nickname) => {
 }
 
 exports.searchUserid = async (userid) => {
-    const nulluser = datatype.user()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.searchUserid, userid)
+            const [queryResult] = await db.query(queryStr.getUser, userid)
             db.release()
 
             if (queryResult.length == 0)
                 throw 1
 
+            
             return res.userResponse(0, queryResult)
         } catch (err) {
             db.release()
             if (err == 1) {
                 console.log("ID unmatch")
-                return res.userResponse(1, nulluser)
+                return res.userResponse(1, null)
             }
             console.log("Query error")
-            return res.userResponse(-1, nulluser)
+            return res.userResponse(-1, null)
         }
     } catch (err) {
         console.log("DB error")
-        return res.userResponse(-1, nulluser)
+        return res.userResponse(-1, null)
     }
 }
 
@@ -101,7 +93,7 @@ exports.matchUserid = async (userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.matchUserid, userid)
+            const [queryResult] = await db.query(queryStr.searchUserid, userid)
             db.release()
 
             if (queryResult.length == 0)
@@ -112,6 +104,32 @@ exports.matchUserid = async (userid) => {
             db.release()
             if (err == 1) {
                 console.log("ID unmatch")
+                return res.genericResponse(1)
+            }
+            console.log("Query error")
+            return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log("DB error")
+        return res.genericResponse(-1)
+    }
+}
+
+exports.matchNickname = async (nickname) => {
+    try {
+        const db = await rds.getConnection(async conn => conn)
+        try {
+            const [queryResult] = await db.query(queryStr.searchNickname, nickname)
+            db.release()
+
+            if (queryResult.length == 0)
+                throw 1
+
+            return res.genericResponse(0)
+        } catch (err) {
+            db.release()
+            if (err == 1) {
+                console.log("Nickname unmatch")
                 return res.genericResponse(1)
             }
             console.log("Query error")
@@ -146,5 +164,25 @@ exports.matchPassword = async (userid, password) => {
     } catch (err) {
         console.log("DB error")
         return res.genericResponse(-1)
+    }
+}
+
+exports.push = async (token) => {
+    const target_token = token
+
+    const message = {
+        notification: {
+            title: "test",
+            body: "test",
+        },
+        token: target_token
+    }
+
+    try {
+        const fcmResponse = await fcm.admin.messaging().send(message)
+
+        console.log("FCM sent msg successfully.", fcmResponse)
+    } catch (err) {
+        console.log("FCM sent msg failed.", err)
     }
 }

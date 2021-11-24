@@ -10,6 +10,6 @@ router.post('/add', controller.addFriend)
 router.post('/block', controller.blockFriend)
 router.post('/delete', controller.deleteFriend)
 
-router.get('/list', controller.listFriend)
+router.post('/list', controller.listFriend)
 
 module.exports = router

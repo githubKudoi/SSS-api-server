@@ -7,6 +7,6 @@ router.use(express.urlencoded({extended: false}))
 
 router.post('/register', controller.register)
 router.post('/user', controller.user)
-router.post('/', controller.login)
+router.post('/login', controller.login)
 
 module.exports = router

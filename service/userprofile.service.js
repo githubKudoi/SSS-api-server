@@ -18,7 +18,7 @@ exports.createProfile = async (userid, nickname, username, age, gender, image) =
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
+                console.log("Nothing affected, " + queryResult)
                 return res.genericResponse(1)
             }
             console.log("Query error")
