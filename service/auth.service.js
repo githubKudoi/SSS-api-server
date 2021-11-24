@@ -5,6 +5,7 @@ const fcm = require('../lib/fcm')
 
 exports.login = async (userid, password, token) => {
     try {
+        console.log(userid, password, token)
         let result = await this.matchUserid(userid)
 
         if (result.code != 0)

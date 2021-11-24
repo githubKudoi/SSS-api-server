@@ -1,7 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const datatype = require('../lib/type')
+const type = require('../lib/type')
 
 exports.createPlan = async (name, date, start_time, end_time, location, category, creator) => {
     try {
@@ -253,7 +253,7 @@ exports.deletePlan = async (pid) => {
 }
 
 exports.listPlan = async (userid, is_current) => {
-    const nullplan = datatype.plan()
+    const nullplan = type.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -264,10 +264,20 @@ exports.listPlan = async (userid, is_current) => {
                 [queryResult] = await db.query(queryStr.listPrevPlan, userid)
             db.release()
 
-            return res.planResponse(0, queryResult)
+            let planResult = new Array()
+            for (let value in queryResult) {
+                console.log(value.pid, value.planname, value.start_time)
+                planResult.push(type.plan(value.pid, value.planname, value.start_time, value.end_time, value.place_name, value.category, null, null, null))
+            }
+            console.log("planResult " + planResult[0], planResult[1])
+
+            if (queryResult[0].length == 0)
+                return res.planResponse(1, nullplan)
+
+            return res.planResponse(0, planResult)
         } catch (err) { 
             db.release()
-            console.log("Query error")
+            console.log(err)
             return res.planResponse(-1, nullplan)
         }
     } catch (err) {
@@ -277,7 +287,7 @@ exports.listPlan = async (userid, is_current) => {
 }
 
 exports.detailsPlan = async (pid) => {
-    const nullplan = datatype.plan()
+    const nullplan = type.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -304,7 +314,7 @@ exports.detailsPlan = async (pid) => {
 }
 
 exports.partlist = async (pid) => {
-    const nulluser = datatype.user()
+    const nulluser = type.user()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
