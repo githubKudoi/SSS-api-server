@@ -1,10 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const fcm = require('../lib/config/fcm')
-const { messaging } = require('firebase-admin')
+const fcm = require('../lib/fcm')
 
-exports.login = async (userid, password) => {
+exports.login = async (userid, password, token) => {
     try {
         let result = await this.matchUserid(userid)
 
@@ -168,20 +167,9 @@ exports.matchPassword = async (userid, password) => {
 }
 
 exports.push = async (token) => {
-    const target_token = token
-
-    const message = {
-        notification: {
-            title: "test",
-            body: "test",
-        },
-        token: target_token
-    }
-
+    // 'icon': "https://drive.google.com/uc?id=12GnQBA6twlWHHakJ109NqYKj3zIxsM75"
     try {
-        const fcmResponse = await fcm.admin.messaging().send(message)
-
-        console.log("FCM sent msg successfully.", fcmResponse)
+        const fcmResponse = await fcm.send("group", "1", "kudoi", "sooyongjeongGroup")
     } catch (err) {
         console.log("FCM sent msg failed.", err)
     }

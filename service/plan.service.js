@@ -59,13 +59,48 @@ exports.editPlan = async (name, date, start_time, end_time, location, category) 
     }
 }
 
-exports.invitePlan = async (pid, target_userid_list) => { // 푸시알림 미구현
+exports.invitePlan = async (pid, target_userid_list) => {
     try {
-        // 푸시알림 코드
-
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list])
+            for (let target_userid in target_userid_list) {
+                const [targetResult] = await db.query(queryStr.getToken, [target_userid])
+                const [inviterResult] = await db.query(queryStr.getNickname, [userid])
+                fcm.send('plan', userid, inviterResult[0].nickname, target_userid, targetResult[0].token)
+
+                const [queryResult] = await db.query(queryStr.invitePlan, [target_userid, gid, 0])
+
+                if (queryResult.affectedRows == 0)
+                    throw 1
+            }
+            db.release()
+
+            return res.genericResponse(0)
+        } catch (err) { 
+            db.release()
+            if (err == 1) {
+                console.log("Nothing affected")
+                return res.genericResponse(1)
+            }
+            console.log("Query error")
+            return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log("DB error")
+        return res.genericResponse(-1)
+    }
+}
+
+exports.invitePlanAccept = async (pid, is_accepted) => {
+    try {
+        const db = await rds.getConnection(async conn => conn)
+        try {
+            if (!is_accepted) {
+                [queryResult] = await db.query(queryStr.kickPlan, [pid, userid])
+            }
+            else {
+                [queryResult] = await db.query(queryStr.invitePlanAccept, [1, userid, pid])
+            }
             db.release()
 
             if (queryResult.affectedRows == 0)

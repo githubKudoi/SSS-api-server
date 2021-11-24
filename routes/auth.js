@@ -9,4 +9,6 @@ router.post('/register', controller.register)
 router.post('/user', controller.user)
 router.post('/login', controller.login)
 
+router.post('/push', controller.push)
+
 module.exports = router
