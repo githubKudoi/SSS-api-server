@@ -10,11 +10,29 @@ exports.login = async (req, res) => {
     res.json(serverResponse)
 }
 
+exports.apiLogin = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.login(
+        body.userid)
+        //token
+    
+    res.json(serverResponse)
+}
+
 exports.register = async (req, res) => {
     const body = req.body
     const serverResponse = await service.register(
         body.userid,
         body.password,
+        body.nickname)
+    
+    res.json(serverResponse)
+}
+
+exports.apiRegister = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.register(
+        body.userid,    
         body.nickname)
     
     res.json(serverResponse)

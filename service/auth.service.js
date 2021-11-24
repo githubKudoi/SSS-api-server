@@ -26,7 +26,65 @@ exports.login = async (userid, password, token) => {
     }
 }
 
+exports.apiLogin = async (userid, token) => {
+    try {
+        let result = await this.matchUserid(userid)
+
+        if (result.code != 0)
+            throw result.code
+        else 
+            result = await this.matchPassword(userid, password)
+        if (result.code != 0)
+            throw result.code
+        else
+            result = await this.searchUserid(userid)
+
+        return res.userResponse(0, result)
+    } catch (err) {
+        if (err == 1) {
+            console.log("ID or Password unmatch.")
+            return res.userResponse(1, null)
+        }
+        return res.userResponse(-1, null)
+    }
+}
+
 exports.register = async (userid, password, nickname) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            let result = await this.matchUserid(userid)
+            if (result.code !== 1)
+                throw 2
+
+            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname, 0])
+            db.release()
+
+            if (queryResult.affectedRows == 0)
+                throw 1
+
+            console.log("User created")
+            return res.genericResponse(0)
+        } catch (err) {
+            db.release()
+            if (err == 1) {
+                console.log("Nothing affected")
+                return res.genericResponse(1)
+            }
+            if (err == 2) {
+                console.log("ID duplicate")
+                return res.genericResponse(1)
+            }
+            console.log("Query error")
+            return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log("DB error")
+        return res.genericResponse(-1)
+    }
+}
+
+exports.apiRegister = async (userid, password, nickname) => {
     try {
         const db = await rds.getConnection()
         try {
