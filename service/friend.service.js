@@ -1,46 +1,45 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const datatype = require('../lib/type')
+const type = require('../lib/type')
 const auth = require('./auth.service')
 
 exports.searchUser = async (userid_or_nickname) => {
+    const nulluser = type.user()
     try {
         const db = await rds.getConnection()
         try {
             let result = await auth.matchUserid(userid_or_nickname)
-            if (result.code == 0){
-                let [queryResult] = await db.query(queryStr.getUser, [userid_or_nickname])
+            if (result.code == 0) { 
+                const [queryResult] = await db.query(queryStr.getUserbyUserid, userid_or_nickname)
                 db.release()
-                return res.userResponse(0, queryResult[0])
+                return res.userResponse(0,queryResult)
             }
-
             result = await auth.matchNickname(userid_or_nickname) 
             if (result.code !== 0)
                 throw 1
 
-            let [queryResult] = await db.query(queryStr.getUser, [userid_or_nickname])
-            
+            const [queryResult] = await db.query(queryStr.getUserbyNickname, userid_or_nickname)
             db.release()
-            return res.userResponse(0, queryResult[0])
+            return res.userResponse(0, queryResult)
         } catch (err) {
             db.release()
             if (err == 1) {
                 console.log("Userid or nickname unmatch")
-                return res.userResponse(1, null)
+                return res.userResponse(1, nulluser)
             }
-            console.log("Query error, " + err)
-            return res.userResponse(-1, null)
+            console.log(err)
+            return res.userResponse(-1, nulluser)
         }
     } catch (err) {
-        console.log("DB error")
-        return res.userResponse(-1, null)
+        console.log(err)
+        return res.userResponse(-1, nulluser)
     }
 }
-
+// 여기까지함
 exports.addFriend = async (userid, target_userid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.addFriend, [userid, target_userid])
             db.release()
@@ -117,7 +116,7 @@ exports.deleteFriend = async (userid, target_userid) => {
 }
 
 exports.listFriend = async (userid) => {
-    const nulluser = datatype.user()
+    const nulluser = type.user()
 
     try {
         const db = await rds.getConnection(async conn => conn)

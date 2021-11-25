@@ -34,13 +34,13 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
     }
 }
 
-exports.editPlan = async (name, date, start_time, end_time, location, category) => {
+exports.editPlan = async (pid, name, start_time, end_time, location, category) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
             const [queryResult] = await db.query(
                 queryStr.editPlan,
-                [name, date, start_time, end_time, location, category])
+                [name, start_time, end_time, location, category, pid])
                 db.release()
 
             if (queryResult.affectedRows == 0)
@@ -66,15 +66,29 @@ exports.invitePlan = async (pid, target_userid_list) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            for (let target_userid in target_userid_list) {
-                const [targetResult] = await db.query(queryStr.getToken, [target_userid])
-                const [inviterResult] = await db.query(queryStr.getNickname, [userid])
-                fcm.send('plan', userid, inviterResult[0].nickname, target_userid, targetResult[0].token)
+            if (typeof target_userid_list == 'string') {
+                const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
+                const [inviterResult] = await db.query(queryStr.getNickname, [target_userid_list])
 
-                const [queryResult] = await db.query(queryStr.invitePlan, [target_userid, gid, 0])
+                // fcm.send('plan', userid, inviterResult.nickName, target_userid_list, targetResult.token)
+
+                const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false])
 
                 if (queryResult.affectedRows == 0)
                     throw 1
+            }
+            else {
+                for (let target_userid of target_userid_list) {
+                    const [targetResult] = await db.query(queryStr.getToken, [target_userid])
+                    const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
+
+                    // fcm.send('plan', userid, inviterResult.nickName, target_userid, targetResult.token)
+
+                    const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid, false])
+
+                    if (queryResult.affectedRows == 0)
+                        throw 1
+                }
             }
             db.release()
 
@@ -94,15 +108,15 @@ exports.invitePlan = async (pid, target_userid_list) => {
     }
 }
 
-exports.invitePlanAccept = async (pid, is_accepted) => {
+exports.invitePlanAccept = async (pid, userid, is_accepted) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            if (!is_accepted) {
+            if (is_accepted == 'false') {
                 [queryResult] = await db.query(queryStr.kickPlan, [pid, userid])
             }
             else {
-                [queryResult] = await db.query(queryStr.invitePlanAccept, [1, userid, pid])
+                [queryResult] = await db.query(queryStr.invitePlanAccept, [userid, pid])
             }
             db.release()
 
@@ -129,11 +143,21 @@ exports.kickPlan = async (pid, target_userid_list) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.kickPlan, [pid, target_userid_list])
+            if (typeof target_userid_list == 'string') {
+                const [queryResult] = await db.query(queryStr.kickPlan, [pid, target_userid_list])
+                
+                if (queryResult.affectedRows == 0)
+                    throw 1
+            }
+            else {
+                for (let [target_userid] of target_userid_list) {
+                    const [queryResult] = await db.query(queryStr.kickPlan, [pid, target_userid])
+                    
+                    if (queryResult.affectedRows == 0)
+                        throw 1
+                }
+            }
             db.release()
-
-            if (queryResult.affectedRows == 0)
-                throw 1
 
             return res.genericResponse(0)
         } catch (err) { 
@@ -142,20 +166,20 @@ exports.kickPlan = async (pid, target_userid_list) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
 
-exports.completePlan = async (pid, userid) => {
+exports.completePlan = async (pid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.completePlan, [userid, pid])
+            const [queryResult] = await db.query(queryStr.completePlan, pid)
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -168,7 +192,7 @@ exports.completePlan = async (pid, userid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
@@ -208,13 +232,10 @@ exports.publicPlan = async (pid, visibility) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (visibility == 'true') {
+            if (visibility == 'true')
                 [queryResult] = await db.query(queryStr.setPlanVisibility, [true, pid])
-            }
-            else {
+            else
                 [queryResult] = await db.query(queryStr.setPlanVisibility, [false, pid])
-            }
-            console.log(queryResult)
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -240,7 +261,7 @@ exports.deletePlan = async (pid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.deletePlan, pid)
+            const [queryResult] = await db.query(queryStr.deletePlan, [pid, pid])
             db.release()
 
             if (queryResult.affectedRows == 0)

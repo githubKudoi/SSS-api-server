@@ -17,8 +17,8 @@ exports.createPlan = async (req, res) => {
 exports.editPlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.editPlan(
+        body.pid,
         body.name,
-        body.date,
         body.start_time,
         body.end_time,
         body.location,
@@ -38,6 +38,17 @@ exports.invitePlan = async (req, res) => {
     res.json(serverResponse)
 }
 
+exports.invitePlanAccept = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.invitePlanAccept(
+        body.pid,
+        body.userid,
+        body.is_accepted
+    )
+    
+    res.json(serverResponse)
+}
+
 exports.kickPlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.kickPlan(
@@ -51,8 +62,7 @@ exports.kickPlan = async (req, res) => {
 exports.completePlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.completePlan(
-        body.pid,
-        body.userid
+        body.pid
     )
     
     res.json(serverResponse)

@@ -7,6 +7,7 @@ router.use(express.urlencoded({extended: false}))
 
 router.post('/create', controller.createPlan)
 router.post('/edit', controller.editPlan)
+router.post('/invite/accept', controller.invitePlanAccept)
 router.post('/invite', controller.invitePlan)
 router.post('/kick', controller.kickPlan)
 router.post('/complete', controller.completePlan)
