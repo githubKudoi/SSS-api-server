@@ -261,7 +261,7 @@ exports.listPlan = async (userid, is_current) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (is_current) // 쿼리문 수정 필요. 현재/지난 약속, isPublic 쿼리문에 추가
+            if (is_current) // 쿼리문 수정 필요. 현재/지난 약속
                 [queryResult] = await db.query(queryStr.listCurrentPlan, [userid, false])
             else
                 [queryResult] = await db.query(queryStr.listPrevPlan, [userid, false])
@@ -287,10 +287,10 @@ exports.detailsPlan = async (pid) => {
             const [queryResult] = await db.query(queryStr.detailsPlan, pid)
             db.release()
 
-            if (queryResult.length == 0)
+            if (queryResult == undefined)
                 throw 1
 
-            return res.planResponse(0, queryResult)
+            return res.planResponse(0, queryResult[0])
         } catch (err) { 
             db.release()
             if (err == 1) {

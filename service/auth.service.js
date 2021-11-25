@@ -5,25 +5,31 @@ const fcm = require('../lib/fcm')
 
 exports.login = async (userid, password, token) => {
     try {
-        console.log(userid, password, token)
-        let result = await this.matchUserid(userid)
+        const db = await rds.getConnection()
+        try {
+            let result = await this.matchUserid(userid)
 
-        if (result.code != 0)
-            throw result.code
-        else 
-            result = await this.matchPassword(userid, password)
-        if (result.code != 0)
-            throw result.code
-        else
-            result = await this.searchUserid(userid)
+            if (result.code != 0)
+                throw result.code
+            else 
+                result = await this.matchPassword(userid, password)
+            if (result.code != 0)
+                throw result.code
+            else
+                result = await this.searchUserid(userid)
 
-        return res.userResponse(0, result)
-    } catch (err) {
-        if (err == 1) {
-            console.log("ID or Password unmatch.")
-            return res.userResponse(1, null)
+            await db.query(queryStr.setOnline, [userid])
+            return res.userResponse(0, result)
+        } catch (err) {
+            if (err == 1) {
+                console.log("ID or Password unmatch.")
+                return res.userResponse(1, null)
+            }
+            return res.userResponse(-1, null)
         }
-        return res.userResponse(-1, null)
+    } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
     }
 }
 
@@ -76,11 +82,11 @@ exports.register = async (userid, password, nickname) => {
                 console.log("ID duplicate")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -111,11 +117,11 @@ exports.apiRegister = async (userid, password, nickname) => {
                 console.log("ID duplicate")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -138,11 +144,11 @@ exports.searchUserid = async (userid) => {
                 console.log("ID unmatch")
                 return res.userResponse(1, null)
             }
-            console.log("Query error")
+            console.log(err)
             return res.userResponse(-1, null)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.userResponse(-1, null)
     }
 }
@@ -164,11 +170,11 @@ exports.matchUserid = async (userid) => {
                 console.log("ID unmatch")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -190,11 +196,11 @@ exports.matchNickname = async (nickname) => {
                 console.log("Nickname unmatch")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -216,11 +222,11 @@ exports.matchPassword = async (userid, password) => {
                 console.log("Password unmatch")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
