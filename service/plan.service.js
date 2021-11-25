@@ -207,7 +207,14 @@ exports.publicPlan = async (pid, visibility) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.setPlanVisibility, [visibility, pid])
+            let queryResult
+            if (visibility == 'true') {
+                [queryResult] = await db.query(queryStr.setPlanVisibility, [true, pid])
+            }
+            else {
+                [queryResult] = await db.query(queryStr.setPlanVisibility, [false, pid])
+            }
+            console.log(queryResult)
             db.release()
 
             if (queryResult.affectedRows == 0)

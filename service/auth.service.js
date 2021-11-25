@@ -5,6 +5,7 @@ const fcm = require('../lib/fcm')
 
 exports.login = async (userid, password, token) => {
     try {
+        console.log(userid, password, token)
         const db = await rds.getConnection()
         try {
             let result = await this.matchUserid(userid)
@@ -19,6 +20,7 @@ exports.login = async (userid, password, token) => {
                 result = await this.searchUserid(userid)
 
             await db.query(queryStr.setOnline, [userid])
+            await db.query(queryStr.setToken, [token, userid])
             return res.userResponse(0, result)
         } catch (err) {
             if (err == 1) {
@@ -46,6 +48,9 @@ exports.apiLogin = async (userid, token) => {
         else
             result = await this.searchUserid(userid)
 
+            
+        await db.query(queryStr.setOnline, [userid])
+        await db.query(queryStr.setToken, [token])
         return res.userResponse(0, result)
     } catch (err) {
         if (err == 1) {

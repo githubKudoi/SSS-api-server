@@ -4,8 +4,8 @@ exports.login = async (req, res) => {
     const body = req.body
     const serverResponse = await service.login(
         body.userid,
-        body.password)
-        //token
+        body.password,
+        body.token)
     
     res.json(serverResponse)
 }
