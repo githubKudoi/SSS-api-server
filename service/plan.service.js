@@ -3,13 +3,16 @@ const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const type = require('../lib/type')
 
-exports.createPlan = async (name, date, start_time, end_time, location, category, creator) => {
+exports.createPlan = async (name, start_time, end_time, location, category, creator) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
+            console.log(name, start_time, end_time, location, category, creator)
+
             const [queryResult] = await db.query(
                 queryStr.newPlan,
-                [name, date, start_time, end_time, location, category, creator])
+                [name, start_time, end_time, location, category,
+                    name, start_time, end_time, location, creator])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -22,11 +25,11 @@ exports.createPlan = async (name, date, start_time, end_time, location, category
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -50,11 +53,11 @@ exports.editPlan = async (name, date, start_time, end_time, location, category) 
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -82,11 +85,11 @@ exports.invitePlan = async (pid, target_userid_list) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -148,7 +151,7 @@ exports.kickPlan = async (pid, target_userid_list) => {
     }
 }
 
-exports.completePlan = async (pid, userid) => { // 자동완료 구현 필요
+exports.completePlan = async (pid, userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -169,7 +172,7 @@ exports.completePlan = async (pid, userid) => { // 자동완료 구현 필요
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -195,7 +198,7 @@ exports.cancelPlan = async (pid, userid) => {
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -204,7 +207,7 @@ exports.publicPlan = async (pid, visibility) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.setPlanVisibility, [pid, visibility])
+            const [queryResult] = await db.query(queryStr.setPlanVisibility, [visibility, pid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -217,11 +220,11 @@ exports.publicPlan = async (pid, visibility) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -243,11 +246,11 @@ exports.deletePlan = async (pid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -258,25 +261,20 @@ exports.listPlan = async (userid, is_current) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (is_current)
-                [queryResult] = await db.query(queryStr.listCurrentPlan, userid)
+            if (is_current) // 쿼리문 수정 필요. 현재/지난 약속, isPublic 쿼리문에 추가
+                [queryResult] = await db.query(queryStr.listCurrentPlan, [userid, false])
             else
-                [queryResult] = await db.query(queryStr.listPrevPlan, userid)
+                [queryResult] = await db.query(queryStr.listPrevPlan, [userid, false])
             db.release()
 
-            console.log(queryResult)
-
-            if (queryResult[0].length == 0)
-                return res.planResponse(1, nullplan)
-
-            return res.planResponse(0, planResult)
+            return res.planResponse(0, queryResult)
         } catch (err) { 
             db.release()
             console.log(err)
             return res.planResponse(-1, nullplan)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.planResponse(-1, nullplan)
     }
 }
@@ -299,11 +297,11 @@ exports.detailsPlan = async (pid) => {
                 console.log("Nothing affected")
                 return res.planResponse(1, nullplan)
             }
-            console.log("Query error")
+            console.log(err)
             return res.planResponse(-1, nullplan)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.planResponse(-1, nullplan)
     }
 }
@@ -319,11 +317,11 @@ exports.partlist = async (pid) => {
             return res.userResponse(0, queryResult)
         } catch (err) { 
             db.release()
-            console.log("Query error")
+            console.log(err)
             return res.userResponse(-1, nulluser)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.userResponse(-1, nulluser)
     }
 }

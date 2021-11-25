@@ -4,7 +4,6 @@ exports.createPlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.createPlan(
         body.name,
-        body.date,
         body.start_time,
         body.end_time,
         body.location,
