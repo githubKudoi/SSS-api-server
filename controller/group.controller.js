@@ -35,6 +35,17 @@ exports.inviteGroup = async (req, res) => {
     res.json(serverResponse)
 }
 
+exports.inviteGroupAccept = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.inviteGroupAccept(
+        body.userid,
+        body.gid,
+        body.is_accepted
+    )
+    
+    res.json(serverResponse)
+}
+
 exports.kickGroup = async (req, res) => {
     const body = req.body
     const serverResponse = await service.kickGroup(

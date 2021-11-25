@@ -19,8 +19,7 @@ exports.editProfile = async (req, res) => {
         body.nickname,
         body.username,
         body.age,
-        body.gender,
-        body.image
+        body.gender
         )
     
     res.json(serverResponse)

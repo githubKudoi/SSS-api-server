@@ -25,7 +25,6 @@ exports.searchUser = async (userid_or_nickname) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Userid or nickname unmatch")
                 return res.userResponse(1, nulluser)
             }
             console.log(err)
@@ -36,7 +35,7 @@ exports.searchUser = async (userid_or_nickname) => {
         return res.userResponse(-1, nulluser)
     }
 }
-// 여기까지함
+
 exports.addFriend = async (userid, target_userid) => {
     try {
         const db = await rds.getConnection()
@@ -54,11 +53,11 @@ exports.addFriend = async (userid, target_userid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -80,11 +79,11 @@ exports.blockFriend = async (userid, target_userid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -106,18 +105,17 @@ exports.deleteFriend = async (userid, target_userid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
 
 exports.listFriend = async (userid) => {
     const nulluser = type.user()
-
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -127,11 +125,11 @@ exports.listFriend = async (userid) => {
             return res.userResponse(0, queryResult)
         } catch (err) {
             db.release()
-            console.log("Query error")
+            console.log(err)
             return res.userResponse(-1, nulluser)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.userResponse(-1, nulluser)
     }
 }

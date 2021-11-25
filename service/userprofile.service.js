@@ -4,37 +4,11 @@ const res = require('../lib/res')
 const datatype = require('../lib/type')
 const multer = require('multer')
 
-exports.createProfile = async (userid, nickname, username, age, gender, image) => {
+exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.newProfile, [userid, nickname, username, age, gender, image])
-            db.release()
-
-            if (queryResult.affectedRows == 0)
-                throw 1
-
-            return res.genericResponse(0)
-        } catch (err) { 
-            db.release()
-            if (err == 1) {
-                console.log("Nothing affected, " + queryResult)
-                return res.genericResponse(1)
-            }
-            console.log("Query error")
-            return res.genericResponse(-1)
-        }
-    } catch (err) {
-        console.log("DB error")
-        return res.genericResponse(-1)
-    }
-}
-
-exports.editProfile = async (userid, nickname, username, age, gender, image) => {
-    try {
-        const db = await rds.getConnection(async conn => conn)
-        try {
-            const [queryResult] = await db.query(queryStr.editProfile, [userid, nickname, username, age, gender, image])
+            const [queryResult] = await db.query(queryStr.editProfile, [userid, nickname, username, age, gender])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -47,18 +21,18 @@ exports.editProfile = async (userid, nickname, username, age, gender, image) => 
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
 
 exports.image = async (image) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const file = image
 
@@ -86,11 +60,11 @@ exports.image = async (image) => {
                 console.log("Image not found")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -122,11 +96,11 @@ exports.option = async (userid, notice_option, friend_invite_option, plan_invite
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -145,10 +119,10 @@ exports.logout = async (userid) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
+                console.log(err)
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
@@ -175,11 +149,11 @@ exports.profile = async (userid) => {
                 console.log("Nothing affected")
                 return res.profileResponse(1, nullProfile)
             }
-            console.log("Query error")
+            console.log(err)
             return res.profileResponse(-1, nullProfile)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.profileResponse(-1, nullProfile)
     }
 }
@@ -201,11 +175,11 @@ exports.stats = async (userid) => {
                 console.log("Nothing affected")
                 return res.statsResponse(1, null)
             }
-            console.log("Query error")
+            console.log(err)
             return res.statsResponse(-1, null)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.statsResponse(-1, null)
     }
 }

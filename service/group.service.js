@@ -6,7 +6,7 @@ const fcm = require('../lib/fcm')
 
 exports.createGroup = async (name, explanation, color, creator) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.newGroup, [name, explanation, color, creator])
             db.release()
@@ -21,20 +21,20 @@ exports.createGroup = async (name, explanation, color, creator) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
 
 exports.editGroup = async (gid, name, explanation, color) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.editGroup, [gid, name, explanation, color])
+            const [queryResult] = await db.query(queryStr.editGroup, [name, explanation, color, gid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -47,28 +47,40 @@ exports.editGroup = async (gid, name, explanation, color) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
 
-exports.inviteGroup = async (userid, gid, target_userid_list) => {
+exports.inviteGroup = async (gid, target_userid_list) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            for (let target_userid in target_userid_list) {
-                const [targetResult] = await db.query(queryStr.getToken, [target_userid])
-                const [inviterResult] = await db.query(queryStr.getNickname, [userid])
-                fcm.send('group', userid, inviterResult[0].nickname, target_userid, targetResult[0].token)
+            if (typeof target_userid_list == 'string') {
+                const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
+                const [inviterResult] = await db.query(queryStr.getNickname, [target_userid_list])
+                // fcm.send('group', userid, inviterResult.nickname, target_userid_list, targetResult[0].token)
 
-                const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid, gid, 0, 0])
-
+                const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid_list, gid])
+                
                 if (queryResult.affectedRows == 0)
                     throw 1
+            }
+            else {
+                for (let target_userid in target_userid_list) {
+                    const [targetResult] = await db.query(queryStr.getToken, [target_userid])
+                    const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
+                    // fcm.send('group', userid, inviterResult.nickname, target_userid, targetResult[0].token)
+
+                    const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid, gid])
+
+                    if (queryResult.affectedRows == 0)
+                        throw 1
+                }
             }
             db.release()
 
@@ -79,11 +91,11 @@ exports.inviteGroup = async (userid, gid, target_userid_list) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -93,11 +105,11 @@ exports.inviteGroupAccept = async (userid, gid, is_accepted) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (!is_accepted) {
+            if (is_accepted == 'false') {
                 [queryResult] = await db.query(queryStr.kickGroup, [gid, userid])
             }
             else {
-                [queryResult] = await db.query(queryStr.inviteGroupAccept, [1, userid, gid])
+                [queryResult] = await db.query(queryStr.inviteGroupAccept, [userid, gid])
             }
             db.release()
 
@@ -108,10 +120,10 @@ exports.inviteGroupAccept = async (userid, gid, is_accepted) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
+                console.log(err)
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
@@ -124,12 +136,22 @@ exports.kickGroup = async (gid, target_userid_list) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.kickGroup, [gid, target_userid_list])
+            if (typeof target_userid_list == 'string') {
+                const [queryResult] = await db.query(queryStr.kickGroup, [gid, target_userid_list])
+            
+            
+                if (queryResult.affectedRows == 0)
+                    throw 1
+            }
+            else {
+                for (let target_userid in target_userid_list) {
+                    const [queryResult] = await db.query(queryStr.kickGroup, [gid, target_userid])
+                
+                    if (queryResult.affectedRows == 0)
+                        throw 1
+                }
+            }
             db.release()
-
-            if (queryResult.affectedRows == 0)
-                throw -1
-
             return res.genericResponse(0)
         } catch (err) { 
             db.release()
@@ -137,11 +159,11 @@ exports.kickGroup = async (gid, target_userid_list) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -150,7 +172,7 @@ exports.deleteGroup = async (gid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.deleteGroup, gid)
+            const [queryResult] = await db.query(queryStr.deleteGroup, [gid, gid, gid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -163,11 +185,11 @@ exports.deleteGroup = async (gid) => {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -183,11 +205,11 @@ exports.listGroup = async (userid) => {
             return res.groupResponse(0, queryResult)
         } catch (err) { 
             db.release()
-            console.log("Query error")
+            console.log(Eerr)
             return res.groupResponse(-1, nullgroup)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.groupResponse(-1, nullgroup)
     }
 }
@@ -210,11 +232,11 @@ exports.detailsGroup = async (gid) => {
                 console.log("No group details")
                 return res.groupResponse(1, nullgroup)
             }
-            console.log("Query error")
+            console.log(err)
             return res.groupResponse(-1, nullgroup)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.groupResponse(-1, nullgroup)
     }
 }

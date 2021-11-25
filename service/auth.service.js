@@ -5,7 +5,6 @@ const fcm = require('../lib/fcm')
 
 exports.login = async (userid, password, token) => {
     try {
-        console.log(userid, password, token)
         const db = await rds.getConnection()
         try {
             let result = await this.matchUserid(userid)
@@ -24,7 +23,7 @@ exports.login = async (userid, password, token) => {
             return res.userResponse(0, result)
         } catch (err) {
             if (err == 1) {
-                console.log("ID or Password unmatch.")
+                console.log(1)
                 return res.userResponse(1, null)
             }
             return res.userResponse(-1, null)
@@ -54,7 +53,6 @@ exports.apiLogin = async (userid, token) => {
         return res.userResponse(0, result)
     } catch (err) {
         if (err == 1) {
-            console.log("ID or Password unmatch.")
             return res.userResponse(1, null)
         }
         return res.userResponse(-1, null)
@@ -69,7 +67,7 @@ exports.register = async (userid, password, nickname) => {
             if (result.code !== 1)
                 throw 2
 
-            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname, 0])
+            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -135,18 +133,16 @@ exports.searchUserid = async (userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.getUser, userid)
+            const [queryResult] = await db.query(queryStr.getUserbyUserid, userid)
             db.release()
 
             if (queryResult.length == 0)
                 throw 1
 
-            
             return res.userResponse(0, queryResult)
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("ID unmatch")
                 return res.userResponse(1, null)
             }
             console.log(err)
@@ -172,7 +168,6 @@ exports.matchUserid = async (userid) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("ID unmatch")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -198,7 +193,6 @@ exports.matchNickname = async (nickname) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Nickname unmatch")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -224,7 +218,6 @@ exports.matchPassword = async (userid, password) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Password unmatch")
                 return res.genericResponse(1)
             }
             console.log(err)

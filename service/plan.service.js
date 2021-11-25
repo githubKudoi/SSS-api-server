@@ -7,12 +7,9 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            console.log(name, start_time, end_time, location, category, creator)
-
             const [queryResult] = await db.query(
                 queryStr.newPlan,
-                [name, start_time, end_time, location, category,
-                    name, start_time, end_time, location, creator])
+                [name, start_time, end_time, location, category, creator])
             db.release()
 
             if (queryResult.affectedRows == 0)
