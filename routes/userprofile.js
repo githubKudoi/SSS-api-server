@@ -9,9 +9,7 @@ router.post('/edit', controller.editProfile)
 router.post('/option', controller.option)
 router.post('/logout', controller.logout)
 
-router.get('/stats', controller.stats)
-router.get('/', controller.profile)
+router.post('/stats', controller.stats)
+router.post('/', controller.profile)
 
-// get planlist
-// logout
 module.exports = router

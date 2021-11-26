@@ -9,8 +9,8 @@ exports.popularity = async (req, res) => {
 exports.keyword = async (req, res) => {
     const body = req.body
     const serverResponse = await service.keyword(
-        body.longitude,
-        body.latitude
+        body.latitude,
+        body.longitude
     )
     
     res.json(serverResponse)
@@ -19,8 +19,8 @@ exports.keyword = async (req, res) => {
 exports.myLocation = async (req, res) => {
     const body = req.body
     const serverResponse = await service.myLocation(
-        body.longitude,
-        body.latitude
+        body.latitude,
+        body.longitude
     )
     
     res.json(serverResponse)

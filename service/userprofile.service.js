@@ -8,7 +8,7 @@ exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.editProfile, [userid, nickname, username, age, gender])
+            const [queryResult] = await db.query(queryStr.editProfile, [nickname, username, age, gender, userid])
             db.release()
 
             if (queryResult.affectedRows == 0)

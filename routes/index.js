@@ -16,9 +16,6 @@ router.use('/group', group)
 router.use('/map', map)
 router.use('/memo', memo)
 router.use('/plan', plan)
-router.use('/userprofile', userprofile) 
-router.get('/', (req, res) => {
-    res.json("Hello world!")
-})
+router.use('/profile', userprofile)
 
 module.exports = router

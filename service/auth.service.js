@@ -20,10 +20,9 @@ exports.login = async (userid, password, token) => {
 
             await db.query(queryStr.setOnline, [userid])
             await db.query(queryStr.setToken, [token, userid])
-            return res.userResponse(0, result)
+            return res.userResponse(0, result.user)
         } catch (err) {
             if (err == 1) {
-                console.log(1)
                 return res.userResponse(1, null)
             }
             return res.userResponse(-1, null)

@@ -1,6 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
+const type = require('../lib/type')
 const axios = require('axios')
 
 const googleDistanceApiConfig = require('../lib/config/googlemap').config
@@ -9,15 +10,15 @@ exports.popularity = async () => {
     // 데이터분석
 }
 
-exports.keyword = async (longitude, latitude) => {
+exports.keyword = async (latitude, longitude) => {
     // 좌표값 입력받아 해당 지명 구함
 }
 
-exports.myLocation = async (longitude, latitude) => {
+exports.myLocation = async (latitude, longitude) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.setMyLocation, [longitude, latitude])
+            const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -30,38 +31,32 @@ exports.myLocation = async (longitude, latitude) => {
                 console.log("Nothing affected")
                 return res.coordResponse(1, null)
             }
-            console.log("Query error")
+            console.log(err)
             return res.coordResponse(-1, null)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.coordResponse(-1, null)
     }
 }
 
 exports.location = async (pid) => { // eta랑 합치기
+    const nulluserLocation = type.userLocation()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.getLocation, pid)
+            const [queryResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
-
-            if (queryResult.length == 0)
-                throw 1
 
             return res.coordResponse(0, queryResult)
         } catch (err) { 
             db.release()
-            if (err == 1) {
-                console.log("No location")
-                return res.coordResponse(1, null)
-            }
-            console.log("Query error")
-            return res.coordResponse(-1, null)
+            console.log(err)
+            return res.coordResponse(-1, nulluserLocation)
         }
     } catch (err) {
-        console.log("DB error")
-        return res.coordResponse(-1, null)
+        console.log(err)
+        return res.coordResponse(-1, nulluserLocation)
     }
 }
 
