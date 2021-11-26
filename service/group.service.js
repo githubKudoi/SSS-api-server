@@ -1,8 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const datatype = require('../lib/type')
 const fcm = require('../lib/fcm')
+
+const nullgroup = require('../lib/type').group
 
 exports.createGroup = async (name, explanation, color, creator) => {
     try {
@@ -195,7 +196,6 @@ exports.deleteGroup = async (gid) => {
 }
 
 exports.listGroup = async (userid) => {
-    const nullgroup = datatype.group()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -215,7 +215,6 @@ exports.listGroup = async (userid) => {
 }
 
 exports.detailsGroup = async (gid) => {
-    const nullgroup = datatype.group()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {

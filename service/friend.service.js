@@ -1,11 +1,11 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const type = require('../lib/type')
 const auth = require('./auth.service')
 
+const nulluser = require('../lib/type').user()
+
 exports.searchUser = async (userid_or_nickname) => {
-    const nulluser = type.user()
     try {
         const db = await rds.getConnection()
         try {
@@ -40,7 +40,7 @@ exports.addFriend = async (userid, target_userid) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.addFriend, [userid, target_userid])
+            const [queryResult] = await db.query(queryStr.addFriend, [userid, target_userid, target_userid, userid, userid, target_userid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -66,7 +66,7 @@ exports.blockFriend = async (userid, target_userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.blockFriend, [userid, target_userid])
+            const [queryResult] = await db.query(queryStr.blockFriend, [userid, target_userid, userid, target_userid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -115,7 +115,6 @@ exports.deleteFriend = async (userid, target_userid) => {
 }
 
 exports.listFriend = async (userid) => {
-    const nulluser = type.user()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -126,10 +125,10 @@ exports.listFriend = async (userid) => {
         } catch (err) {
             db.release()
             console.log(err)
-            return res.userResponse(-1, nulluser)
+            return res.userResponse(-1, [nulluser])
         }
     } catch (err) {
         console.log(err)
-        return res.userResponse(-1, nulluser)
+        return res.userResponse(-1, [nulluser])
     }
 }

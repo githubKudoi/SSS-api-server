@@ -141,8 +141,8 @@ exports.profile = async (userid) => {
 
             if (queryResult.length == 0)
                 throw 1
-
-            return res.profileResponse(0, queryResult)
+                
+            return res.profileResponse(0, queryResult[0])
         } catch (err) { 
             db.release()
             if (err == 1) {

@@ -3,6 +3,8 @@ const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const fcm = require('../lib/fcm')
 
+const nulluser = require('../lib/type').user()
+
 exports.login = async (userid, password, token) => {
     try {
         const db = await rds.getConnection()
@@ -20,12 +22,13 @@ exports.login = async (userid, password, token) => {
 
             await db.query(queryStr.setOnline, [userid])
             await db.query(queryStr.setToken, [token, userid])
+            
             return res.userResponse(0, result.user)
         } catch (err) {
             if (err == 1) {
-                return res.userResponse(1, null)
+                return res.userResponse(1, nulluser)
             }
-            return res.userResponse(-1, null)
+            return res.userResponse(-1, nulluser)
         }
     } catch (err) {
         console.log(err)
@@ -35,30 +38,32 @@ exports.login = async (userid, password, token) => {
 
 exports.apiLogin = async (userid, token) => {
     try {
-        let result = await this.matchUserid(userid)
+        const db = await rds.getConnection()
+        try {
+            let result = await this.matchUserid(userid)
 
-        if (result.code != 0)
-            throw result.code
-        else 
-            result = await this.matchPassword(userid, password)
-        if (result.code != 0)
-            throw result.code
-        else
-            result = await this.searchUserid(userid)
+            if (result.code != 0)
+                throw result.code
+            else
+                result = await this.searchUserid(userid)
 
+            await db.query(queryStr.setOnline, [userid])
+            await db.query(queryStr.setToken, [token, userid])
             
-        await db.query(queryStr.setOnline, [userid])
-        await db.query(queryStr.setToken, [token])
-        return res.userResponse(0, result)
-    } catch (err) {
-        if (err == 1) {
-            return res.userResponse(1, null)
+            return res.userResponse(0, result.user)
+        } catch (err) {
+            if (err == 1) {
+                return res.userResponse(1, nulluser)
+            }
+            return res.userResponse(-1, nulluser)
         }
-        return res.userResponse(-1, null)
+    } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
     }
 }
 
-exports.register = async (userid, password, nickname) => {
+exports.apiRegister = async (userid, nickname, api_id) => {
     try {
         const db = await rds.getConnection()
         try {
@@ -66,7 +71,7 @@ exports.register = async (userid, password, nickname) => {
             if (result.code !== 1)
                 throw 2
 
-            const [queryResult] = await db.query(queryStr.register, [userid, password, nickname])
+            const [queryResult] = await db.query(queryStr.apiRegister, [userid, nickname, api_id])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -138,18 +143,18 @@ exports.searchUserid = async (userid) => {
             if (queryResult.length == 0)
                 throw 1
 
-            return res.userResponse(0, queryResult)
+            return res.userResponse(0, queryResult[0])
         } catch (err) {
             db.release()
             if (err == 1) {
-                return res.userResponse(1, null)
+                return res.userResponse(1, nulluser)
             }
             console.log(err)
-            return res.userResponse(-1, null)
+            return res.userResponse(-1, nulluser)
         }
     } catch (err) {
         console.log(err)
-        return res.userResponse(-1, null)
+        return res.userResponse(-1, nulluser)
     }
 }
 
