@@ -38,7 +38,8 @@ exports.uploadAvatar = async (userid, image) => {
         try {
             if (!image)
                 throw 2
-            console.log(image)
+            
+            const avatarPath = '/uploads/' + userid + '.'
             
             // const [queryResult] = await db.query(queryStr.setAvatar, [image, userid]) // 이미지 설정 쿼리문
             

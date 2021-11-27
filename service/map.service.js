@@ -40,23 +40,29 @@ exports.myLocation = async (latitude, longitude) => {
     }
 }
 
-exports.location = async (pid) => { // eta랑 합치기
-    const nulluserLocation = type.userLocation()
+exports.location = async (userid, pid, latitude, longitude) => { // eta랑 합치기
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.getLocation, [pid])
+            const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
+            if (queryResult.length == 0)
+                throw 1
+            
+            const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude, userid])
+            if (coordinationResult.affectedRows == 0)
+                throw 1
+            
             db.release()
 
-            return res.coordResponse(0, queryResult)
+            return res.coordResponse(0, coordinationResult[0])
         } catch (err) { 
             db.release()
             console.log(err)
-            return res.coordResponse(-1, nulluserLocation)
+            return res.coordResponse(0, null)
         }
     } catch (err) {
         console.log(err)
-        return res.coordResponse(-1, nulluserLocation)
+        return res.coordResponse(-1, null)
     }
 }
 

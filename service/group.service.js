@@ -103,7 +103,7 @@ exports.inviteGroup = async (gid, target_userid_list) => {
 
 exports.inviteGroupAccept = async (userid, gid, is_accepted) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             let queryResult
             if (is_accepted == 'false') {
@@ -135,7 +135,7 @@ exports.inviteGroupAccept = async (userid, gid, is_accepted) => {
 
 exports.kickGroup = async (gid, target_userid_list) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             if (typeof target_userid_list == 'string') {
                 const [queryResult] = await db.query(queryStr.kickGroup, [gid, target_userid_list])
@@ -171,7 +171,7 @@ exports.kickGroup = async (gid, target_userid_list) => {
 
 exports.deleteGroup = async (gid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.deleteGroup, [gid, gid, gid])
             db.release()
@@ -197,7 +197,7 @@ exports.deleteGroup = async (gid) => {
 
 exports.listGroup = async (userid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.listGroup, userid)
             db.release()
@@ -216,7 +216,8 @@ exports.listGroup = async (userid) => {
 
 exports.detailsGroup = async (gid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        console.log("detailsGroup")
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.detailsGroup, gid)
             db.release()
@@ -224,7 +225,7 @@ exports.detailsGroup = async (gid) => {
             if (queryResult.length == 0)
                 throw 1
 
-            return res.groupResponse(0, queryResult)
+            return res.groupResponse(0, queryResult[0])
         } catch (err) { 
             db.release()
             if (err == 1) {

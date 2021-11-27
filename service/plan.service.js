@@ -40,7 +40,7 @@ exports.editPlan = async (pid, name, start_time, end_time, location, category) =
             const [queryResult] = await db.query(
                 queryStr.editPlan,
                 [name, start_time, end_time, location, category, pid])
-                db.release()
+            db.release()
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -48,13 +48,13 @@ exports.editPlan = async (pid, name, start_time, end_time, location, category) =
             return res.genericResponse(0)
         } catch (err) { 
             db.release()
-            if (err < 0) {
+            if (err == 1) {
                 console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
             return res.genericResponse(-1)
-        }
+        }  
     } catch (err) {
         console.log(err)
         return res.genericResponse(-1)
