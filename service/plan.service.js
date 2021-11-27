@@ -1,7 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const type = require('../lib/type')
+
+const nullplan = require('../lib/type').plan()
+const nulluser = require('../lib/type').user()
 
 exports.createPlan = async (name, start_time, end_time, location, category, creator) => {
     try {
@@ -281,7 +283,6 @@ exports.deletePlan = async (pid) => {
 }
 
 exports.listPlan = async (userid, is_current) => {
-    const nullplan = type.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -305,7 +306,6 @@ exports.listPlan = async (userid, is_current) => {
 }
 
 exports.detailsPlan = async (pid) => {
-    const nullplan = type.plan()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -332,7 +332,6 @@ exports.detailsPlan = async (pid) => {
 }
 
 exports.partlist = async (pid) => {
-    const nulluser = type.user()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {

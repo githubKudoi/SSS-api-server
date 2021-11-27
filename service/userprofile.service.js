@@ -1,8 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const datatype = require('../lib/type')
-const multer = require('multer')
+
+const nullprofile = require('../lib/type').profile()
+const nullstats = require('../lib/type').stats()
 
 exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
@@ -30,7 +31,7 @@ exports.editProfile = async (userid, nickname, username, age, gender) => {
     }
 }
 
-exports.image = async (image) => {
+exports.uploadAvatar = async (userid, image) => {
     try {
         const db = await rds.getConnection()
         try {
@@ -39,12 +40,13 @@ exports.image = async (image) => {
             if (!file)
                 throw 2
 
-            const originalName = file.originalName
+            const originalName = file.originalname
             const filename = file.filename
             const mimeType = file.mimeType
             const size = file.size
+            const imageData = readImageFile('../uploads/' + originalName)
 
-            const [queryResult] = await db.query(queryStr) // 이미지 설정 쿼리문
+            const [queryResult] = await db.query(queryStr.setAvatar, [image, userid]) // 이미지 설정 쿼리문
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -66,6 +68,31 @@ exports.image = async (image) => {
     } catch (err) {
         console.log(err)
         return res.genericResponse(-1)
+    }
+}
+
+exports.downloadAvatar = async (userid) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            const [queryResult] = await db.query(queryStr.getAvatar, userid)
+
+            if (queryResult.length == 0)
+                throw 1
+
+            return res.imageResponse(0, queryResult[0])
+        }catch (err) {
+            db.release()
+            if (err == 1) {
+                console.log("Image not found")
+                return res.imageResponse(1, null)
+            }
+            console.log(err)
+            return res.imageResponse(-1, null)
+        }
+    } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1, null)
     }
 }
 
@@ -132,7 +159,6 @@ exports.logout = async (userid) => {
 }
 
 exports.profile = async (userid) => {
-    const nullProfile = datatype.profile()
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
@@ -147,14 +173,14 @@ exports.profile = async (userid) => {
             db.release()
             if (err == 1) {
                 console.log("Nothing affected")
-                return res.profileResponse(1, nullProfile)
+                return res.profileResponse(1, nullprofile)
             }
             console.log(err)
-            return res.profileResponse(-1, nullProfile)
+            return res.profileResponse(-1, nullprofile)
         }
     } catch (err) {
         console.log(err)
-        return res.profileResponse(-1, nullProfile)
+        return res.profileResponse(-1, nullprofile)
     }
 }
 
@@ -173,13 +199,13 @@ exports.stats = async (userid) => {
             db.release()
             if (err == 1) {
                 console.log("Nothing affected")
-                return res.statsResponse(1, null)
+                return res.statsResponse(1, nullstats)
             }
             console.log(err)
-            return res.statsResponse(-1, null)
+            return res.statsResponse(-1, nullstats)
         }
     } catch (err) {
         console.log(err)
-        return res.statsResponse(-1, null)
+        return res.statsResponse(-1, nullstats)
     }
 }

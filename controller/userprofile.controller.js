@@ -1,16 +1,4 @@
-const multer = require('multer')
 const service = require('../service/userprofile.service')
-
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/')
-    },
-    filename: (req, file, cb) => {
-        let newFileName = new Date().valueOf() + path.extname(file.originalname)
-        cb(null, newFileName)
-    },
-})
-let upload = multer({ storage: storage })
 
 exports.editProfile = async (req, res) => {
     const body = req.body
@@ -25,17 +13,17 @@ exports.editProfile = async (req, res) => {
     res.json(serverResponse)
 }
 
-exports.image = async (req, res) => {
-    upload.single('upload')
-    const serverResponse = await service.image(
+exports.uploadAvatar = async (req, res) => {
+    const serverResponse = await service.uploadAvatar(
+        req.userid,
         req.file
     )
 
     res.json(serverResponse)
 }
 
-exports.getImage = async (req, res) => {
-    const serverResponse = await service.getImage(
+exports.downloadAvatar = async (req, res) => {
+    const serverResponse = await service.downloadAvatar(
         req.params.userid
     )
 

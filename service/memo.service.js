@@ -1,7 +1,8 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const datatype = require('../lib/type')
+
+const nullmemo = require('../lib/type').memo()
 
 exports.createMemo = async (userid, pid, memo) => {
     try {
@@ -56,7 +57,6 @@ exports.deleteMemo = async (userid, pid) => {
 }
 
 exports.listMemo = async (pid) => {
-    const nullmemo = datatype.memo(null)
     try {
         const db = await rds.getConnection()
         try {
