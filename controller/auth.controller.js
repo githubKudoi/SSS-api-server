@@ -12,8 +12,8 @@ exports.login = async (req, res) => {
 
 exports.apiLogin = async (req, res) => {
     const body = req.body
-    const serverResponse = await service.login(
-        body.userid,
+    const serverResponse = await service.apiLogin(
+        body.api_id,
         body.token)
     
     res.json(serverResponse)
@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
 
 exports.apiRegister = async (req, res) => {
     const body = req.body
-    const serverResponse = await service.register(
+    const serverResponse = await service.apiRegister(
         body.userid,    
         body.nickname,
         body.api_id)

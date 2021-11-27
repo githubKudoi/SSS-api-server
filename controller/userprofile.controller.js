@@ -14,8 +14,9 @@ exports.editProfile = async (req, res) => {
 }
 
 exports.uploadAvatar = async (req, res) => {
+    const body = req.body
     const serverResponse = await service.uploadAvatar(
-        req.userid,
+        body.userid,
         req.file
     )
 
@@ -31,13 +32,22 @@ exports.downloadAvatar = async (req, res) => {
     res.end(serverResponse);
 }
 
-exports.option = async (req, res) => {
+exports.setOptions = async (req, res) => {
     const body = req.body
-    const serverResponse = await service.option(
+    const serverResponse = await service.setOptions(
         body.userid,
         body.notice_option,
-        body.friend_invite_option,
-        body.plan_invite_option
+        body.plan_invite_option,
+        body.friend_invite_option
+    )
+    
+    res.json(serverResponse)
+}
+
+exports.getOptions = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.getOptions(
+        body.userid
     )
     
     res.json(serverResponse)

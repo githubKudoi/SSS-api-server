@@ -4,6 +4,7 @@ const res = require('../lib/res')
 
 const nullprofile = require('../lib/type').profile()
 const nullstats = require('../lib/type').stats()
+const nulloptions = require('../lib/type').options()
 
 exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
@@ -35,22 +36,16 @@ exports.uploadAvatar = async (userid, image) => {
     try {
         const db = await rds.getConnection()
         try {
-            const file = image
-
-            if (!file)
+            if (!image)
                 throw 2
+            console.log(image)
+            
+            // const [queryResult] = await db.query(queryStr.setAvatar, [image, userid]) // 이미지 설정 쿼리문
+            
+            // if (queryResult.affectedRows == 0)
+            //     throw 1
 
-            const originalName = file.originalname
-            const filename = file.filename
-            const mimeType = file.mimeType
-            const size = file.size
-            const imageData = readImageFile('../uploads/' + originalName)
-
-            const [queryResult] = await db.query(queryStr.setAvatar, [image, userid]) // 이미지 설정 쿼리문
-
-            if (queryResult.affectedRows == 0)
-                throw 1
-            db.release()
+            // db.release()
             return res.genericResponse(0)
         } catch (err) {
             db.release()
@@ -71,7 +66,7 @@ exports.uploadAvatar = async (userid, image) => {
     }
 }
 
-exports.downloadAvatar = async (userid) => {
+exports.downloadAvatar = async (userid) => {/*
     try {
         const db = await rds.getConnection()
         try {
@@ -93,30 +88,36 @@ exports.downloadAvatar = async (userid) => {
     } catch (err) {
         console.log(err)
         return res.genericResponse(-1, null)
-    }
+    }*/
 }
 
-exports.option = async (userid, notice_option, friend_invite_option, plan_invite_option) => {
+exports.setOptions = async (userid, notice_option, plan_invite_option, friend_invite_option) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.setNoticeOption, [userid, notice_option])
+            let queryResult
 
-            if (queryResult.affectedRows == 0)
-                throw 1
-            
-            [queryResult] = await db.query(queryStr.setInviteFriendOption, [userid, friend_invite_option])
+            if (notice_option == 'true')
+                [queryResult] = await db.query(queryStr.setNoticeOption, [true, userid])
+            else 
+                [queryResult] = await db.query(queryStr.setNoticeOption, [false, userid])
 
-            if (queryResult.affectedRows == 0)
-                throw 1
+            if (plan_invite_option == 'true') 
+                [queryResult] = await db.query(queryStr.setPlanInviteOption, [true, userid])
+            else 
+                [queryResult] = await db.query(queryStr.setPlanInviteOption, [false, userid])
 
-            [queryResult] = await db.query(queryStr.setInvitePlanOption, [userid, plan_invite_option])
+            if (friend_invite_option == 'true')
+                [queryResult] = await db.query(queryStr.setPlanInviteOption, [true, userid])
+            else
+                [queryResult] = await db.query(queryStr.setPlanInviteOption, [false, userid])
+
 
             if (queryResult.affectedRows == 0)
                 throw 1
             db.release()
 
-            return res.planResponse(queryResult)
+            return res.genericResponse(0)
         } catch (err) { 
             db.release()
             if (err == 1) {
@@ -132,12 +133,35 @@ exports.option = async (userid, notice_option, friend_invite_option, plan_invite
     }
 }
 
+exports.getOptions = async (userid) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            const [queryResult] = await db.query(queryStr.getOptions, userid)
+
+            if (queryResult.length == 0)
+                throw 1
+            db.release()
+
+            return res.optionsResponse(0, queryResult[0])
+        } catch (err) { 
+            db.release()
+            console.log(err)
+            return res.optionsResponse(-1, nulloptions)
+        }
+    } catch (err) {
+        console.log(err)
+        return res.optionsResponse(-1, nulloptions)
+    }
+}
+
 exports.logout = async (userid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.logout, userid)
             db.release()
+            console.log(queryResult)
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -146,14 +170,14 @@ exports.logout = async (userid) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log(err)
+                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -194,7 +218,7 @@ exports.stats = async (userid) => {
             if (queryResult.length == 0)
                 throw 1
 
-            return res.statsResponse(0, queryResult)
+            return res.statsResponse(0, queryResult[0])
         } catch (err) { 
             db.release()
             if (err == 1) {

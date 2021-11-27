@@ -12,7 +12,7 @@ router.post('/invite', controller.inviteGroup)
 router.post('/kick', controller.kickGroup)
 router.post('/delete', controller.deleteGroup)
 
-router.get('/list', controller.listGroup)
-router.get('/details', controller.detailsGroup)
+router.post('/list', controller.listGroup)
+router.post('/details', controller.detailsGroup)
 
 module.exports = router

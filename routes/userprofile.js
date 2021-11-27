@@ -8,23 +8,22 @@ router.use(express.urlencoded({extended: false}))
 
 let _storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '../uploads/')
+        cb(null, 'uploads/')
     },
     filename: (req, file, cb) => {
-        let newFileName = new Date().valueOf() + path.extname(file.originalname)
-        cb(null, newFileName)
+        cb(null, file.originalname)
     },
 })
 let upload = multer({ storage: _storage })
 
 router.post('/edit', controller.editProfile)
-router.post('/option', controller.option)
+router.post('/option', controller.getOptions)
+router.post('/option/update', controller.setOptions)
 router.post('/logout', controller.logout)
-
 router.post('/stats', controller.stats)
-router.post('/', controller.profile)
 
-router.post('/image/upload', upload.single('image'), controller.uploadAvatar)
+router.post('/image/upload', upload.single('upload'), controller.uploadAvatar)
 router.get('/image/:userid', controller.downloadAvatar)
 
+router.post('/', controller.profile)
 module.exports = router

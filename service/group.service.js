@@ -205,7 +205,7 @@ exports.listGroup = async (userid) => {
             return res.groupResponse(0, queryResult)
         } catch (err) { 
             db.release()
-            console.log(Eerr)
+            console.log(err)
             return res.groupResponse(-1, nullgroup)
         }
     } catch (err) {

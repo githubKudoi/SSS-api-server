@@ -287,10 +287,10 @@ exports.listPlan = async (userid, is_current) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (is_current) // 쿼리문 수정 필요. 현재/지난 약속
-                [queryResult] = await db.query(queryStr.listCurrentPlan, [userid, false])
+            if (is_current == 'true')
+                [queryResult] = await db.query(queryStr.listCurrentPlan, [userid])
             else
-                [queryResult] = await db.query(queryStr.listPrevPlan, [userid, false])
+                [queryResult] = await db.query(queryStr.listPrevPlan, [userid])
             db.release()
 
             return res.planResponse(0, queryResult)
@@ -312,7 +312,7 @@ exports.detailsPlan = async (pid) => {
             const [queryResult] = await db.query(queryStr.detailsPlan, pid)
             db.release()
 
-            if (queryResult == undefined)
+            if (queryResult.length == 0)
                 throw 1
 
             return res.planResponse(0, queryResult[0])

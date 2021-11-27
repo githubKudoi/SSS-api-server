@@ -36,30 +36,33 @@ exports.login = async (userid, password, token) => {
     }
 }
 
-exports.apiLogin = async (userid, token) => {
+exports.apiLogin = async (api_id, token) => {
     try {
         const db = await rds.getConnection()
         try {
-            let result = await this.matchUserid(userid)
+            let [result] = await db.query(queryStr.searchApiId, api_id)
 
-            if (result.code != 0)
-                throw result.code
-            else
-                result = await this.searchUserid(userid)
+            if (result.length == 0)
+                throw 1
+            else {
+                [result] = await db.query(queryStr.getUserbyUserid, [result[0].userId])
+            }
+            await db.query(queryStr.setOnline, result[0].userId)
 
-            await db.query(queryStr.setOnline, [userid])
-            await db.query(queryStr.setToken, [token, userid])
+            //await db.query(queryStr.setToken, [token, result[0].userId])
             
-            return res.userResponse(0, result.user)
+            return res.userResponse(0, result[0])
         } catch (err) {
             if (err == 1) {
+                console.log("API ID not match")
                 return res.userResponse(1, nulluser)
             }
+            console.log(err)
             return res.userResponse(-1, nulluser)
         }
     } catch (err) {
         console.log(err)
-        return res.genericResponse(-1)
+        return res.genericResponse(-1, nulluser)
     }
 }
 
@@ -69,7 +72,7 @@ exports.apiRegister = async (userid, nickname, api_id) => {
         try {
             let result = await this.matchUserid(userid)
             if (result.code !== 1)
-                throw 2
+                throw 1
 
             const [queryResult] = await db.query(queryStr.apiRegister, [userid, nickname, api_id])
             db.release()
@@ -82,10 +85,6 @@ exports.apiRegister = async (userid, nickname, api_id) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
-                return res.genericResponse(1)
-            }
-            if (err == 2) {
                 console.log("ID duplicate")
                 return res.genericResponse(1)
             }
@@ -98,7 +97,7 @@ exports.apiRegister = async (userid, nickname, api_id) => {
     }
 }
 
-exports.apiRegister = async (userid, password, nickname) => {
+exports.register = async (userid, password, nickname) => {
     try {
         const db = await rds.getConnection()
         try {
@@ -137,7 +136,7 @@ exports.searchUserid = async (userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.getUserbyUserid, userid)
+            const [queryResult] = await db.query(queryStr.getUserbyUserid, [userid])
             db.release()
 
             if (queryResult.length == 0)
@@ -162,7 +161,7 @@ exports.matchUserid = async (userid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.searchUserid, userid)
+            const [queryResult] = await db.query(queryStr.searchUserid, [userid])
             db.release()
 
             if (queryResult.length == 0)

@@ -62,7 +62,7 @@ exports.listMemo = async (pid) => {
         try {
             const [queryResult] = await db.query(queryStr.listMemo, pid)
             db.release()
-
+            
             return res.memoResponse(0, queryResult)
         } catch (err) { 
             db.release()
