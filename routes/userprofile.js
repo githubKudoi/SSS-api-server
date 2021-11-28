@@ -21,6 +21,8 @@ router.post('/option', controller.getOptions)
 router.post('/option/update', controller.setOptions)
 router.post('/logout', controller.logout)
 router.post('/stats', controller.stats)
+router.post('/point/add', controller.addPoint)
+router.post('/point/sub', controller.subPoint)
 
 router.post('/image/upload', upload.single('upload'), controller.uploadAvatar)
 router.get('/image/:userid', controller.downloadAvatar)

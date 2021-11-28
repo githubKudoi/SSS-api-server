@@ -57,6 +57,17 @@ exports.kickGroup = async (req, res) => {
     res.json(serverResponse)
 }
 
+exports.exitGroup = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.exitGroup(
+        body.userid,
+        body.gid
+    )
+    
+    res.json(serverResponse)
+}
+
+
 exports.deleteGroup = async (req, res) => {
     const body = req.body
     const serverResponse = await service.deleteGroup(

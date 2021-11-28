@@ -53,6 +53,26 @@ exports.getOptions = async (req, res) => {
     res.json(serverResponse)
 }
 
+exports.addPoint = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.addPoint(
+        body.userid,
+        body.point
+    )
+    
+    res.json(serverResponse)
+}
+
+exports.subPoint = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.subPoint(
+        body.userid,
+        body.point
+    )
+    
+    res.json(serverResponse)
+}
+
 exports.logout = async (req, res) => {
     const body = req.body
     const serverResponse = await service.logout(

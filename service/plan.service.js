@@ -12,7 +12,7 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
         try {
             const [queryResult] = await db.query(
                 queryStr.newPlan,
-                [name, start_time, end_time, location, category, creator, gid])
+                [name, start_time, end_time, location, category, creator, gid, gid])
 
             db.release()
 
@@ -23,7 +23,6 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -78,8 +77,8 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
             if (typeof target_userid_list == 'string') {
                 const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
                 const [inviterResult] = await db.query(queryStr.getNickname, [target_userid_list])
-
-                fcm.send(pid, 'plan', userid, inviterResult[0].nickName, target_userid_list, targetResult[0].token)
+                const [inviterPlanResult] = await db.query(queryStr.getPlanName, pid)
+                fcm.send(pid, 'plan', userid, inviterResult[0].nickName, inviterPlanResult[0].name, targetResult[0].token)
 
                 const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false])
 
@@ -90,8 +89,9 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
                 for (let target_userid of target_userid_list) {
                     const [targetResult] = await db.query(queryStr.getToken, [target_userid])
                     const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
+                    const [inviterPlanResult] = await db.query(queryStr.getPlanName, pid)
 
-                    fcm.send(pid, 'plan', userid, inviterResult[0].nickName, target_userid, targetResult[0].token)
+                    fcm.send(pid, 'plan', userid, inviterResult[0].nickName, inviterPlanResult[0].name, targetResult[0].token)
 
                     const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid, false])
 

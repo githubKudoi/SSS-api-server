@@ -10,6 +10,7 @@ router.post('/edit', controller.editGroup)
 router.post('/invite/accept', controller.inviteGroupAccept)
 router.post('/invite', controller.inviteGroup)
 router.post('/kick', controller.kickGroup)
+router.post('/exit', controller.exitGroup)
 router.post('/delete', controller.deleteGroup)
 
 router.post('/list', controller.listGroup)

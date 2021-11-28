@@ -8,7 +8,7 @@ exports.createMemo = async (userid, pid, memo) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.newMemo, [memo, pid])
+            const [queryResult] = await db.query(queryStr.newMemo, [memo, pid, userid])
             db.release()
 
             if (queryResult.affectedRows == 0)

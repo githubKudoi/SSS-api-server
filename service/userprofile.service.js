@@ -9,6 +9,7 @@ const nulloptions = require('../lib/type').options()
 
 exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
+        console.log(userid, nickname, username, age, gender)
         const db = await rds.getConnection()
         try {
             let queryResult
@@ -160,13 +161,54 @@ exports.getOptions = async (userid) => {
     }
 }
 
+exports.addPoint = async (userid, point) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            const [queryResult] = await db.query(queryStr.addPoint, [point, userid])
+            db.release()
+
+            if (queryResult.length == 0)
+                throw 1
+
+            return res.genericResponse(0)
+        } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
+    }
+}
+
+exports.subPoint = async (userid, point) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            const [queryResult] = await db.query(queryStr.subPoint, [point, userid])
+            db.release()
+
+            if (queryResult.length == 0)
+                throw 1
+                
+            return res.genericResponse(0)
+        } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
+        }
+    } catch (err) {
+        console.log(err)
+        return res.genericResponse(-1)
+    }
+}
+
 exports.logout = async (userid) => {
     try {
         const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.logout, userid)
             db.release()
-            console.log(queryResult)
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -193,8 +235,6 @@ exports.profile = async (userid) => {
         try {
             const [queryResult] = await db.query(queryStr.getProfile, userid)
             db.release()
-
-            console.log(queryResult)
                 
             return res.profileResponse(0, queryResult[0])
         } catch (err) { 
@@ -222,7 +262,6 @@ exports.stats = async (userid) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.statsResponse(1, nullstats)
             }
             console.log(err)
