@@ -20,8 +20,8 @@ exports.login = async (userid, password, token) => {
             else
                 result = await this.searchUserid(userid)
 
-            await db.query(queryStr.setOnline, [userid])
-            await db.query(queryStr.setToken, [token, userid])
+            await db.query(queryStr.setOnline, userid)
+            await db.query(queryStr.setToken, [token, userid, token])
             
             return res.userResponse(0, result.user)
         } catch (err) {
@@ -47,9 +47,9 @@ exports.apiLogin = async (api_id, token) => {
             else {
                 [result] = await db.query(queryStr.getUserbyUserid, [result[0].userId])
             }
+            
             await db.query(queryStr.setOnline, result[0].userId)
-
-            //await db.query(queryStr.setToken, [token, result[0].userId])
+            await db.query(queryStr.setToken, [token, result[0].userId, token])
             
             return res.userResponse(0, result[0])
         } catch (err) {

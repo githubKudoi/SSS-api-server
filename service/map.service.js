@@ -6,12 +6,22 @@ const axios = require('axios')
 
 const googleDistanceApiConfig = require('../lib/config/googlemap').config
 
-exports.popularity = async () => {
-    // 데이터분석
-}
+exports.popularity = async (userid, response) => {
+    const { spawn } = require('child_process')
+    const pyProg = spawn('python3', ['lib/main.py', 'user777', 5])
 
-exports.keyword = async (latitude, longitude) => {
-    // 좌표값 입력받아 해당 지명 구함
+    let name = []
+    let dataToSend
+
+    pyProg.stdout.on('data', (data) => {
+        dataToSend = data.toString()
+    })
+    pyProg.on('close', (code) => {
+        name = dataToSend.split('\n')
+        name.pop()
+
+        response.json(res.placeResponse(0, name))
+    })
 }
 
 exports.myLocation = async (latitude, longitude) => {

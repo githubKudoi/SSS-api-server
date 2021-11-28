@@ -1,6 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
+const fcm = require('../lib/fcm')
 
 const nullplan = require('../lib/type').plan()
 const nulluser = require('../lib/type').user()
@@ -12,6 +13,7 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
             const [queryResult] = await db.query(
                 queryStr.newPlan,
                 [name, start_time, end_time, location, category, creator, gid])
+
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -69,15 +71,15 @@ exports.editPlan = async (pid, name, start_time, end_time, location, category, g
     }
 }
 
-exports.invitePlan = async (pid, target_userid_list) => {
+exports.invitePlan = async (pid, userid, target_userid_list) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             if (typeof target_userid_list == 'string') {
                 const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
                 const [inviterResult] = await db.query(queryStr.getNickname, [target_userid_list])
 
-                // fcm.send('plan', userid, inviterResult.nickName, target_userid_list, targetResult.token)
+                fcm.send(pid, 'plan', userid, inviterResult[0].nickName, target_userid_list, targetResult[0].token)
 
                 const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false])
 
@@ -89,7 +91,7 @@ exports.invitePlan = async (pid, target_userid_list) => {
                     const [targetResult] = await db.query(queryStr.getToken, [target_userid])
                     const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
 
-                    // fcm.send('plan', userid, inviterResult.nickName, target_userid, targetResult.token)
+                    fcm.send(pid, 'plan', userid, inviterResult[0].nickName, target_userid, targetResult[0].token)
 
                     const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid, false])
 
@@ -103,7 +105,6 @@ exports.invitePlan = async (pid, target_userid_list) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -117,8 +118,10 @@ exports.invitePlan = async (pid, target_userid_list) => {
 
 exports.invitePlanAccept = async (pid, userid, is_accepted) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
+            let queryResult
+
             if (is_accepted == 'false') {
                 [queryResult] = await db.query(queryStr.kickPlan, [pid, userid])
             }
@@ -134,14 +137,13 @@ exports.invitePlanAccept = async (pid, userid, is_accepted) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -170,7 +172,6 @@ exports.kickPlan = async (pid, target_userid_list) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -222,10 +223,9 @@ exports.cancelPlan = async (pid, userid) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
-            console.log("Query error")
+            console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
@@ -268,7 +268,7 @@ exports.deletePlan = async (pid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(queryStr.deletePlan, [pid, pid])
+            const [queryResult] = await db.query(queryStr.deletePlan, [pid, pid, pid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -332,10 +332,9 @@ exports.detailsPlan = async (pid) => {
                 queryResult[0].category,
                 queryResult[0].isPublic,
                 queryResult[0].creator,
-                { 'gid': queryResult[0].gid, 'name': queryResult[0].gname }
+                queryResult[0].gid,
+                queryResult[0].gname
             )
-
-            console.log(planinfo)
 
             return res.planResponse(0, planinfo)
         } catch (err) { 

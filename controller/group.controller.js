@@ -29,6 +29,7 @@ exports.inviteGroup = async (req, res) => {
     const body = req.body
     const serverResponse = await service.inviteGroup(
         body.gid,
+        body.userid,
         body.target_userid_list
     )
     

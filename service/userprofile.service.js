@@ -11,7 +11,12 @@ exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.editProfile, [nickname, username, age, gender, userid])
+            let queryResult
+
+            if (gender == 'true')
+                [queryResult] = await db.query(queryStr.editProfile, [nickname, username, age, true, userid])
+            else
+                [queryResult] = await db.query(queryStr.editProfile, [nickname, username, age, false, userid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -34,18 +39,17 @@ exports.editProfile = async (userid, nickname, username, age, gender) => {
 }
 
 exports.uploadAvatar = async (userid, image) => {
+    if (!image)
+        throw 2
     try {
         const db = await rds.getConnection()
         try {
-            if (!image)
-                throw 2
-            
-            const [queryResult] = await db.query(queryStr.setAvatarPath, [image.originalname, userid]) // 이미지 설정 쿼리문
-            
+            const [queryResult] = await db.query(queryStr.setAvatarPath, [image.originalname, userid])
+            db.release()
+
             if (queryResult.affectedRows == 0)
                 throw 1
 
-            db.release()
             return res.genericResponse(0)
         } catch (err) {
             db.release()
@@ -66,7 +70,7 @@ exports.uploadAvatar = async (userid, image) => {
     }
 }
 
-exports.downloadAvatar = async (userid) => {
+exports.downloadAvatar = async (userid) => {/*
     try {
         const db = await rds.getConnection()
         try {
@@ -89,7 +93,7 @@ exports.downloadAvatar = async (userid) => {
     } catch (err) {
         console.log(err)
         return res.genericResponse(-1, null)
-    }
+    }*/
 }
 
 exports.setOptions = async (userid, notice_option, plan_invite_option, friend_invite_option) => {
@@ -109,9 +113,9 @@ exports.setOptions = async (userid, notice_option, plan_invite_option, friend_in
                 [queryResult] = await db.query(queryStr.setPlanInviteOption, [false, userid])
 
             if (friend_invite_option == 'true')
-                [queryResult] = await db.query(queryStr.setPlanInviteOption, [true, userid])
+                [queryResult] = await db.query(queryStr.setFriendInviteOption, [true, userid])
             else
-                [queryResult] = await db.query(queryStr.setPlanInviteOption, [false, userid])
+                [queryResult] = await db.query(queryStr.setFriendInviteOption, [false, userid])
 
 
             if (queryResult.affectedRows == 0)
@@ -190,16 +194,11 @@ exports.profile = async (userid) => {
             const [queryResult] = await db.query(queryStr.getProfile, userid)
             db.release()
 
-            if (queryResult.length == 0)
-                throw 1
+            console.log(queryResult)
                 
             return res.profileResponse(0, queryResult[0])
         } catch (err) { 
             db.release()
-            if (err == 1) {
-                console.log("Nothing affected")
-                return res.profileResponse(1, nullprofile)
-            }
             console.log(err)
             return res.profileResponse(-1, nullprofile)
         }

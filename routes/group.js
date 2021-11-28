@@ -14,5 +14,6 @@ router.post('/delete', controller.deleteGroup)
 
 router.post('/list', controller.listGroup)
 router.post('/details', controller.detailsGroup)
+// 그룹 인원수 /part
 
 module.exports = router

@@ -57,28 +57,34 @@ exports.editGroup = async (gid, name, explanation, color) => {
     }
 }
 
-exports.inviteGroup = async (gid, target_userid_list) => {
+exports.inviteGroup = async (gid, userid, target_userid_list) => {
     try {
         const db = await rds.getConnection()
         try {
             if (typeof target_userid_list == 'string') {
                 const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
-                const [inviterResult] = await db.query(queryStr.getNickname, [target_userid_list])
-                // fcm.send('group', userid, inviterResult.nickname, target_userid_list, targetResult[0].token)
+                const [inviterResult] = await db.query(queryStr.getNickname, userid)
+                const [inviterGroupResult] = await db.query(queryStr.getGroupName, gid)
 
+                if (inviterGroupResult.length == 0)
+                    throw 1
+
+                fcm.send(gid, 'group', userid, inviterResult[0].nickName, inviterGroupResult[0].name, targetResult[0].token)
+                
                 const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid_list, gid])
                 
                 if (queryResult.affectedRows == 0)
                     throw 1
             }
             else {
-                for (let target_userid in target_userid_list) {
+                for (let target_userid of target_userid_list) {
                     const [targetResult] = await db.query(queryStr.getToken, [target_userid])
                     const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
-                    // fcm.send('group', userid, inviterResult.nickname, target_userid, targetResult[0].token)
+                    
+                    fcm.send(gid, 'group', userid, inviterResult[0].nickName, target_userid, targetResult[0].token)
 
                     const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid, gid])
-
+                    
                     if (queryResult.affectedRows == 0)
                         throw 1
                 }
@@ -89,7 +95,6 @@ exports.inviteGroup = async (gid, target_userid_list) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             console.log(err)
@@ -121,14 +126,13 @@ exports.inviteGroupAccept = async (userid, gid, is_accepted) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log(err)
                 return res.genericResponse(1)
             }
             console.log(err)
             return res.genericResponse(-1)
         }
     } catch (err) {
-        console.log("DB error")
+        console.log(err)
         return res.genericResponse(-1)
     }
 }
@@ -216,7 +220,6 @@ exports.listGroup = async (userid) => {
 
 exports.detailsGroup = async (gid) => {
     try {
-        console.log("detailsGroup")
         const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.detailsGroup, gid)

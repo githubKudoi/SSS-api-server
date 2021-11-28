@@ -49,8 +49,7 @@ exports.addFriend = async (userid, target_userid) => {
             return res.genericResponse(0)
         } catch (err) {
             db.release()
-            if (err == -1) {
-                console.log("Nothing affected")
+            if (err == 1) {
                 return res.genericResponse(1)
             }
             console.log(err)
