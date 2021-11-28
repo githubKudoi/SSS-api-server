@@ -5,13 +5,13 @@ const res = require('../lib/res')
 const nullplan = require('../lib/type').plan()
 const nulluser = require('../lib/type').user()
 
-exports.createPlan = async (name, start_time, end_time, location, category, creator) => {
+exports.createPlan = async (name, start_time, end_time, location, category, creator, gid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
             const [queryResult] = await db.query(
                 queryStr.newPlan,
-                [name, start_time, end_time, location, category, creator])
+                [name, start_time, end_time, location, category, creator, gid])
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -33,13 +33,21 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
     }
 }
 
-exports.editPlan = async (pid, name, start_time, end_time, location, category) => {
+exports.editPlan = async (pid, name, start_time, end_time, location, category, gid) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
-            const [queryResult] = await db.query(
+            let queryResult
+            [queryResult] = await db.query(
                 queryStr.editPlan,
-                [name, start_time, end_time, location, category, pid])
+                [name, start_time, end_time, location, category, pid, pid, gid, gid])
+            
+            if (gid !== undefined) {
+                [queryResult] = await db.query(queryStr.updateGroupPlanBelongs, [pid, gid, gid])
+            }
+            else {
+                [queryResult] = await db.query(queryStr.destroyGroupPlanBelongs, pid)
+            }
             db.release()
 
             if (queryResult.affectedRows == 0)
@@ -314,8 +322,22 @@ exports.detailsPlan = async (pid) => {
 
             if (queryResult.length == 0)
                 throw 1
+            
+            const planinfo = require('../lib/type').plan(
+                queryResult[0].pid,
+                queryResult[0].name,
+                queryResult[0].startTime,
+                queryResult[0].endTime,
+                queryResult[0].location,
+                queryResult[0].category,
+                queryResult[0].isPublic,
+                queryResult[0].creator,
+                { 'gid': queryResult[0].gid, 'name': queryResult[0].gname }
+            )
 
-            return res.planResponse(0, queryResult[0])
+            console.log(planinfo)
+
+            return res.planResponse(0, planinfo)
         } catch (err) { 
             db.release()
             if (err == 1) {

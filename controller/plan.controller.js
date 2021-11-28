@@ -8,7 +8,8 @@ exports.createPlan = async (req, res) => {
         body.end_time,
         body.location,
         body.category,
-        body.creator
+        body.creator,
+        body.gid
         )
     
     res.json(serverResponse)
@@ -22,7 +23,8 @@ exports.editPlan = async (req, res) => {
         body.start_time,
         body.end_time,
         body.location,
-        body.category
+        body.category,
+        body.gid
     )
     
     res.json(serverResponse)
