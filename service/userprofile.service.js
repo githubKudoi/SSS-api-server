@@ -1,6 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
+const fs = require('fs')
 
 const nullprofile = require('../lib/type').profile()
 const nullstats = require('../lib/type').stats()
@@ -39,14 +40,12 @@ exports.uploadAvatar = async (userid, image) => {
             if (!image)
                 throw 2
             
-            const avatarPath = '/uploads/' + userid + '.'
+            const [queryResult] = await db.query(queryStr.setAvatarPath, [image.originalname, userid]) // 이미지 설정 쿼리문
             
-            // const [queryResult] = await db.query(queryStr.setAvatar, [image, userid]) // 이미지 설정 쿼리문
-            
-            // if (queryResult.affectedRows == 0)
-            //     throw 1
+            if (queryResult.affectedRows == 0)
+                throw 1
 
-            // db.release()
+            db.release()
             return res.genericResponse(0)
         } catch (err) {
             db.release()
@@ -67,16 +66,17 @@ exports.uploadAvatar = async (userid, image) => {
     }
 }
 
-exports.downloadAvatar = async (userid) => {/*
+exports.downloadAvatar = async (userid) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.getAvatar, userid)
+            const [queryResult] = await db.query(queryStr.getAvatarPath, userid)
 
-            if (queryResult.length == 0)
+            if (queryResult[0].image.length == 0)
                 throw 1
 
-            return res.imageResponse(0, queryResult[0])
+            const file = fs.createReadStream(queryResult[0].image)
+            return res.imageResponse(0, file)
         }catch (err) {
             db.release()
             if (err == 1) {
@@ -89,7 +89,7 @@ exports.downloadAvatar = async (userid) => {/*
     } catch (err) {
         console.log(err)
         return res.genericResponse(-1, null)
-    }*/
+    }
 }
 
 exports.setOptions = async (userid, notice_option, plan_invite_option, friend_invite_option) => {
