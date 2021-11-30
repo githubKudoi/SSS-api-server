@@ -1,9 +1,9 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const type = require('../lib/type')
 const axios = require('axios')
 
+const nullCoordination = require('../lib/type').coordination()
 const googleDistanceApiConfig = require('../lib/config/googlemap').config
 
 exports.popularity = async (userid, response) => {
@@ -38,28 +38,27 @@ exports.myLocation = async (latitude, longitude) => {
         } catch (err) { 
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
-                return res.coordResponse(1, null)
+                return res.coordResponse(1, nullCoordination)
             }
             console.log(err)
-            return res.coordResponse(-1, null)
+            return res.coordResponse(-1, nullCoordination)
         }
     } catch (err) {
         console.log(err)
-        return res.coordResponse(-1, null)
+        return res.coordResponse(-1, nullCoordination)
     }
 }
 
-exports.location = async (userid, pid, latitude, longitude) => { // eta랑 합치기
+exports.location = async (userid, pid, latitude, longitude) => {
     try {
         const db = await rds.getConnection()
         try {
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
-            if (queryResult.length == 0)
+            if (coordinationResult.length == 0)
                 throw 1
             
             const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude, userid])
-            if (coordinationResult.affectedRows == 0)
+            if (queryResult.affectedRows == 0)
                 throw 1
             
             db.release()
@@ -68,11 +67,11 @@ exports.location = async (userid, pid, latitude, longitude) => { // eta랑 합�
         } catch (err) { 
             db.release()
             console.log(err)
-            return res.coordResponse(0, null)
+            return res.coordResponse(0, nullCoordination)
         }
     } catch (err) {
         console.log(err)
-        return res.coordResponse(-1, null)
+        return res.coordResponse(-1, nullCoordination)
     }
 }
 

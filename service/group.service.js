@@ -196,7 +196,7 @@ exports.exitGroup = async (userid, gid) => {
         console.log(err)
         return res.genericResponse(-1)
     }
-}
+} 
 
 exports.deleteGroup = async (gid) => {
     try {

@@ -1,11 +1,12 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const fs = require('fs')
 
 const nullprofile = require('../lib/type').profile()
 const nullstats = require('../lib/type').stats()
 const nulloptions = require('../lib/type').options()
+
+const imageDir = '/home/ubuntu/sss/uploads/'
 
 exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
@@ -55,7 +56,6 @@ exports.uploadAvatar = async (userid, image) => {
         } catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Nothing affected")
                 return res.genericResponse(1)
             }
             if (err == 2) {
@@ -71,7 +71,7 @@ exports.uploadAvatar = async (userid, image) => {
     }
 }
 
-exports.downloadAvatar = async (userid) => {/*
+exports.downloadAvatar = async (userid) => {
     try {
         const db = await rds.getConnection()
         try {
@@ -80,21 +80,22 @@ exports.downloadAvatar = async (userid) => {/*
             if (queryResult[0].image.length == 0)
                 throw 1
 
-            const file = fs.createReadStream(queryResult[0].image)
-            return res.imageResponse(0, file)
+            console.log(imageDir + queryResult[0].image)
+
+            return imageDir + queryResult[0].image
         }catch (err) {
             db.release()
             if (err == 1) {
                 console.log("Image not found")
-                return res.imageResponse(1, null)
+                return null
             }
             console.log(err)
-            return res.imageResponse(-1, null)
+            return null
         }
     } catch (err) {
         console.log(err)
-        return res.genericResponse(-1, null)
-    }*/
+        return null
+    }
 }
 
 exports.setOptions = async (userid, notice_option, plan_invite_option, friend_invite_option) => {

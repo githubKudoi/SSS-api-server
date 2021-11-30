@@ -28,8 +28,7 @@ exports.downloadAvatar = async (req, res) => {
         req.params.userid
     )
 
-    res.writeHead(200, { 'Content-Type': 'image/*; charset=utf-8' });
-    res.end(serverResponse);
+    res.sendFile(serverResponse)
 }
 
 exports.setOptions = async (req, res) => {
