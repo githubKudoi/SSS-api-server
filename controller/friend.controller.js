@@ -3,6 +3,7 @@ const service = require('../service/friend.service')
 exports.searchUser = async (req, res) => {
     const body = req.body
     const serverResponse = await service.searchUser(
+        body.userid,
         body.userid_or_nickname
         )
     

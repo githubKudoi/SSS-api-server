@@ -11,6 +11,7 @@ exports.popularity = async (req, res) => {
 exports.myLocation = async (req, res) => {
     const body = req.body
     const serverResponse = await service.myLocation(
+        body.userid,
         body.latitude,
         body.longitude
     )
@@ -21,7 +22,7 @@ exports.myLocation = async (req, res) => {
 exports.location = async (req, res) => {
     const body = req.body
     const serverResponse = await service.location(
-        body.userid
+        body.pid
     )
     
     res.json(serverResponse)

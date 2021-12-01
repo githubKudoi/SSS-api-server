@@ -80,8 +80,6 @@ exports.downloadAvatar = async (userid) => {
             if (queryResult[0].image.length == 0)
                 throw 1
 
-            console.log(imageDir + queryResult[0].image)
-
             return imageDir + queryResult[0].image
         }catch (err) {
             db.release()

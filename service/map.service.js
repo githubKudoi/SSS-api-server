@@ -2,9 +2,12 @@ const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const axios = require('axios')
+const httpRequest = require('request')
+const kakao = require('../lib/config/kakaomap')
+const type = require('../lib/type')
 
+let locationList = []
 const nullCoordination = require('../lib/type').coordination()
-const googleDistanceApiConfig = require('../lib/config/googlemap').config
 
 exports.popularity = async (userid, response) => {
     const { spawn } = require('child_process')
@@ -24,54 +27,91 @@ exports.popularity = async (userid, response) => {
     })
 }
 
-exports.myLocation = async (latitude, longitude) => {
+exports.myLocation = async (userid, latitude, longitude) => {
     try {
         const db = await rds.getConnection()
         try {
-            const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude])
+            const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude, userid])
             db.release()
 
             if (queryResult.affectedRows == 0)
                 throw 1
 
-            return res.coordResponse(0, queryResult)
+            return res.genericResponse(0)
         } catch (err) { 
             db.release()
             if (err == 1) {
-                return res.coordResponse(1, nullCoordination)
+                return res.genericResponse(1)
             }
             console.log(err)
-            return res.coordResponse(-1, nullCoordination)
+            return res.genericResponse(-1)
         }
     } catch (err) {
         console.log(err)
-        return res.coordResponse(-1, nullCoordination)
+        return res.genericResponse(-1)
     }
 }
 
-exports.location = async (userid, pid, latitude, longitude) => {
+exports.location = async (pid) => {
     try {
         const db = await rds.getConnection()
         try {
+            let parsedBody = ''
+            const [placenameResult] = await db.query(queryStr.getPlanLocation, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
+            db.release()
+
             if (coordinationResult.length == 0)
                 throw 1
             
-            const [queryResult] = await db.query(queryStr.setMyLocation, [latitude, longitude, userid])
-            if (queryResult.affectedRows == 0)
-                throw 1
-            
-            db.release()
+            for (coord of coordinationResult) {
+                const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0])
+                
+                httpRequest(kakaoPlaceOptions, (err, res, body) => {
+                    if (!err && res.statusCode === 200) {
+                        parsedBody = JSON.parse(body)
+                        let eta = ''
+                        const kakaoEtaOptions = kakao.kakaoEtaOptions(
+                            coord.longitude,
+                            coord.latitude,
+                            parsedBody.documents[0].x,
+                            parsedBody.documents[0].y)
 
-            return res.coordResponse(0, coordinationResult[0])
+                        httpRequest(kakaoEtaOptions, (err, res, body) => {
+                            if (!err && res.statusCode === 200) {
+                                parsedBody = JSON.parse(body)
+                                
+                                let minute = Math.round((parsedBody.routes[0].summary.duration / 60) % 60)
+                                let time = Math.round((parsedBody.routes[0].summary.duration / 60) / 60)
+
+                                if (time > 0)
+                                    eta = time + "시간 " + minute + "분"
+                                else
+                                    eta = minute + "분"
+
+                                    locationList.push(type.location(
+                                        coord.nickName,
+                                        coord.longitude,
+                                        coord.latitude,
+                                        eta))
+                                }
+                            else
+                            console.log(body)
+                        })
+                    }
+                })
+            }
+
+            return res.locationResponse(0, locationList)
+
         } catch (err) { 
             db.release()
             console.log(err)
-            return res.coordResponse(0, nullCoordination)
+            return res.locationResponse(0, nullCoordination)
         }
     } catch (err) {
         console.log(err)
-        return res.coordResponse(-1, nullCoordination)
+        return res.locationResponse(-1, nullCoordination)
     }
 }
 
@@ -83,7 +123,7 @@ exports.eta = async (start_latitude, start_longitude, destination_latitude, dest
         "&region=" + googleDistanceApiConfig.region +
         "&key=" + googleDistanceApiConfig.key
 
-        const result = await axios.get(reqestUrl)
+        const result = axios.get(reqestUrl)
         
         if(result.data.status !== 'OK')
             throw result.data.error_message

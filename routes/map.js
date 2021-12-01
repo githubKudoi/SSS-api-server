@@ -6,7 +6,7 @@ const router = express.Router()
 router.use(express.urlencoded({extended: false}))
 
 router.post('/popularity', controller.popularity)
-router.post('/mylocation', controller.myLocation)
+router.post('/location/set', controller.myLocation)
 router.post('/location', controller.location)
 router.post('/eta', controller.eta)
 

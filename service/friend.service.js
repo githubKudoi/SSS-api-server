@@ -5,13 +5,13 @@ const auth = require('./auth.service')
 
 const nulluser = require('../lib/type').user()
 
-exports.searchUser = async (userid_or_nickname) => {
+exports.searchUser = async (userid, userid_or_nickname) => {
     try {
         const db = await rds.getConnection()
         try {
             let result = await auth.matchUserid(userid_or_nickname)
             if (result.code == 0) { 
-                const [queryResult] = await db.query(queryStr.getUserbyUserid, userid_or_nickname)
+                const [queryResult] = await db.query(queryStr.searchUserByUserid, [userid_or_nickname, userid_or_nickname, userid])
                 db.release()
                 return res.userResponse(0,queryResult)
             }
@@ -19,7 +19,7 @@ exports.searchUser = async (userid_or_nickname) => {
             if (result.code !== 0)
                 throw 1
 
-            const [queryResult] = await db.query(queryStr.getUserbyNickname, userid_or_nickname)
+            const [queryResult] = await db.query(queryStr.searchUserByNickname, [userid_or_nickname, userid_or_nickname, userid])
             db.release()
             return res.userResponse(0, queryResult)
         } catch (err) {

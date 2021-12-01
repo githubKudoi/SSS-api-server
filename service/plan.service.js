@@ -290,15 +290,20 @@ exports.deletePlan = async (pid) => {
     }
 }
 
-exports.listPlan = async (userid, is_current) => {
+exports.listPlan = async (userid, is_current, is_mine) => {
     try {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (is_current == 'true')
-                [queryResult] = await db.query(queryStr.listCurrentPlan, [userid])
-            else
-                [queryResult] = await db.query(queryStr.listPrevPlan, [userid])
+            if (is_mine == 'false')
+                [queryResult] = await db.query(queryStr.listFriendPlan, [userid])
+                
+            else {
+                if (is_current == 'true')
+                    [queryResult] = await db.query(queryStr.listCurrentPlan, [userid])
+                else
+                    [queryResult] = await db.query(queryStr.listPrevPlan, [userid])
+            }
             db.release()
 
             return res.planResponse(0, queryResult)

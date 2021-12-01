@@ -104,7 +104,8 @@ exports.listPlan = async (req, res) => {
     const body = req.body
     const serverResponse = await service.listPlan(
         body.userid,
-        body.is_current
+        body.is_current,
+        body.is_mine
     )
     
     res.json(serverResponse)

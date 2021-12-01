@@ -28,7 +28,11 @@ exports.downloadAvatar = async (req, res) => {
         req.params.userid
     )
 
-    res.sendFile(serverResponse)
+    if (serverResponse === null)
+        res.json(null)
+
+    else
+        res.sendFile(serverResponse)
 }
 
 exports.setOptions = async (req, res) => {
