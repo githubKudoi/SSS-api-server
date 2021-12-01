@@ -103,7 +103,6 @@ exports.location = async (pid) => {
             }
 
             return res.locationResponse(0, locationList)
-
         } catch (err) { 
             db.release()
             console.log(err)
