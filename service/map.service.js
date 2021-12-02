@@ -57,7 +57,7 @@ exports.location = async (pid) => {
         const db = await rds.getConnection()
         try {
             let parsedBody = ''
-            const [placenameResult] = await db.query(queryStr.getPlanLocation, [pid])
+            const [placenameResult] = await db.query(queryStr.getPlace, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
 

@@ -248,12 +248,13 @@ exports.detailsGroup = async (gid) => {
         const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.detailsGroup, gid)
+            const [personnelResult] = await db.query(queryStr.countGroupParticipant, gid)
             db.release()
 
             if (queryResult.length == 0)
                 throw 1
 
-            return res.groupResponse(0, queryResult[0])
+            console.log(res.groupResponse(0, queryResult[0], personnelResult[0].personnel))
         } catch (err) { 
             db.release()
             if (err == 1) {
@@ -266,5 +267,24 @@ exports.detailsGroup = async (gid) => {
     } catch (err) {
         console.log(err)
         return res.groupResponse(-1, nullgroup)
+    }
+}
+
+exports.partlist = async (gid) => {
+    try {
+        const db = await rds.getConnection()
+        try {
+            const [queryResult] = await db.query(queryStr.listGroupParticipant, gid)
+            db.release()
+
+            return res.userResponse(0, queryResult)
+        } catch (err) { 
+            db.release()
+            console.log(err)
+            return res.userResponse(-1, nulluser)
+        }
+    } catch (err) {
+        console.log(err)
+        return res.userResponse(-1, nulluser)
     }
 }

@@ -94,3 +94,12 @@ exports.detailsGroup = async (req, res) => {
     
     res.json(serverResponse)
 }
+
+exports.partlist = async (req, res) => {
+    const body = req.body
+    const serverResponse = await service.partlist(
+        body.gid
+    )
+    
+    res.json(serverResponse)
+}

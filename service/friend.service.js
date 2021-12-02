@@ -40,6 +40,10 @@ exports.addFriend = async (userid, target_userid) => {
     try {
         const db = await rds.getConnection()
         try {
+            const [optionResult] = await db.query(queryStr.checkFriendInviteOption, [target_userid])
+            if (optionResult[0].friendInviteOption === 0)
+                throw 2
+                
             const [queryResult] = await db.query(queryStr.addFriend, [userid, target_userid, target_userid, userid, userid, target_userid])
             db.release()
 
@@ -51,6 +55,9 @@ exports.addFriend = async (userid, target_userid) => {
             db.release()
             if (err == 1) {
                 return res.genericResponse(1)
+            }
+            if (err == 2) {
+                return res.genericResponse(0)
             }
             console.log(err)
             return res.genericResponse(-1)
