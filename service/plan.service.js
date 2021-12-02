@@ -295,8 +295,9 @@ exports.listPlan = async (userid, is_current, is_mine) => {
         const db = await rds.getConnection(async conn => conn)
         try {
             let queryResult
-            if (is_mine == 'false')
+            if (is_mine == 'false'){
                 [queryResult] = await db.query(queryStr.listFriendPlan, [userid])
+            }
                 
             else {
                 if (is_current == 'true')

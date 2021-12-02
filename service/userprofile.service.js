@@ -10,7 +10,6 @@ const imageDir = '/home/ubuntu/sss/uploads/'
 
 exports.editProfile = async (userid, nickname, username, age, gender) => {
     try {
-        console.log(userid, nickname, username, age, gender)
         const db = await rds.getConnection()
         try {
             let queryResult
@@ -77,14 +76,13 @@ exports.downloadAvatar = async (userid) => {
         try {
             const [queryResult] = await db.query(queryStr.getAvatarPath, userid)
 
-            if (queryResult[0].image.length == 0)
+            if (queryResult[0].image === null)
                 throw 1
 
             return imageDir + queryResult[0].image
         }catch (err) {
             db.release()
             if (err == 1) {
-                console.log("Image not found")
                 return null
             }
             console.log(err)
