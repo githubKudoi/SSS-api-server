@@ -62,7 +62,7 @@ exports.location = async (pid) => {
             db.release()
 
             if (coordinationResult.length == 0)
-                throw 1
+                throw 0
             
             for (coord of coordinationResult) {
                 const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0])
@@ -102,10 +102,11 @@ exports.location = async (pid) => {
                 })
             }
 
-            return res.locationResponse(0, locationList)
+            const locationResult = locationList
+            locationList = []
+            return res.locationResponse(0, locationResult)
         } catch (err) { 
             db.release()
-            console.log(err)
             return res.locationResponse(0, nullCoordination)
         }
     } catch (err) {

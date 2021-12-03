@@ -254,7 +254,7 @@ exports.detailsGroup = async (gid) => {
             if (queryResult.length == 0)
                 throw 1
 
-            console.log(res.groupResponse(0, queryResult[0], personnelResult[0].personnel))
+            return res.groupResponse(0, queryResult[0], personnelResult[0].personnel)
         } catch (err) { 
             db.release()
             if (err == 1) {
