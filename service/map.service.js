@@ -60,8 +60,8 @@ exports.location = async (pid) => {
             const [placenameResult] = await db.query(queryStr.getPlace, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
-
-            if (coordinationResult.length == 0)
+            
+            if (coordinationResult.length === 0)
                 throw 0
             
             for (coord of coordinationResult) {
@@ -81,19 +81,19 @@ exports.location = async (pid) => {
                             if (!err && res.statusCode === 200) {
                                 parsedBody = JSON.parse(body)
                                 
-                                let minute = Math.round((parsedBody.routes[0].summary.duration / 60) % 60)
-                                let time = Math.round((parsedBody.routes[0].summary.duration / 60) / 60)
+                                let minute = Math.floor((parsedBody.routes[0].summary.duration / 60) % 60)
+                                let time = Math.floor(parsedBody.routes[0].summary.duration / 3600)
 
                                 if (time > 0)
                                     eta = time + "시간 " + minute + "분"
                                 else
                                     eta = minute + "분"
 
-                                    locationList.push(type.location(
-                                        coord.nickName,
-                                        coord.longitude,
-                                        coord.latitude,
-                                        eta))
+                                locationList.push(type.location(
+                                    coord.nickName,
+                                    coord.latitude,
+                                    coord.longitude,
+                                    eta))
                                 }
                             else
                             console.log(body)

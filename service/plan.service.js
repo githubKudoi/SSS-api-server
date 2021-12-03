@@ -77,7 +77,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
             if (typeof target_userid_list == 'string') {
                 const [optionResult] = await db.query(queryStr.checkPlanInviteOption, [target_userid_list])
                 
-                if (optionResult[0].planInviteOption === 0)
+                if (optionResult[0].planInviteOption === 1)
                     throw 2
 
                 const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
@@ -85,7 +85,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
                 const [inviterPlanResult] = await db.query(queryStr.getPlanName, pid)
                 fcm.send(pid, 'plan', userid, inviterResult[0].nickName, inviterPlanResult[0].name, targetResult[0].token)
 
-                const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false])
+                const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false, target_userid_list])
 
                 if (queryResult.affectedRows == 0)
                     throw 1
@@ -94,7 +94,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
                 for (let target_userid of target_userid_list) {
                     const [optionResult] = await db.query(queryStr.checkOption, [target_userid])
                 
-                    if (optionResult[0].planInviteOption === 0)
+                    if (optionResult[0].planInviteOption === 1)
                         continue
 
                     const [targetResult] = await db.query(queryStr.getToken, [target_userid])
@@ -103,7 +103,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
 
                     fcm.send(pid, 'plan', userid, inviterResult[0].nickName, inviterPlanResult[0].name, targetResult[0].token)
 
-                    const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid, false])
+                    const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid, false, target_userid])
 
                     if (queryResult.affectedRows == 0)
                         throw 1

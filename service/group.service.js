@@ -62,6 +62,11 @@ exports.inviteGroup = async (gid, userid, target_userid_list) => {
         const db = await rds.getConnection()
         try {
             if (typeof target_userid_list == 'string') {
+                const [optionResult] = await db.query(queryStr.checkPlanInviteOption, [target_userid_list])
+                
+                if (optionResult[0].planInviteOption === 1)
+                    throw 2
+
                 const [targetResult] = await db.query(queryStr.getToken, [target_userid_list])
                 const [inviterResult] = await db.query(queryStr.getNickname, userid)
                 const [inviterGroupResult] = await db.query(queryStr.getGroupName, gid)
@@ -78,6 +83,11 @@ exports.inviteGroup = async (gid, userid, target_userid_list) => {
             }
             else {
                 for (let target_userid of target_userid_list) {
+                    const [optionResult] = await db.query(queryStr.checkPlanInviteOption, [target_userid])
+                    
+                    if (optionResult[0].planInviteOption === 1)
+                        continue
+
                     const [targetResult] = await db.query(queryStr.getToken, [target_userid])
                     const [inviterResult] = await db.query(queryStr.getNickname, [target_userid])
                     const [inviterGroupResult] = await db.query(queryStr.getGroupName, gid)
@@ -97,6 +107,9 @@ exports.inviteGroup = async (gid, userid, target_userid_list) => {
             db.release()
             if (err == 1) {
                 return res.genericResponse(1)
+            }
+            if (err == 2) {
+                return res.genericResponse(0)
             }
             console.log(err)
             return res.genericResponse(-1)
