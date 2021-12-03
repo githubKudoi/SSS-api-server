@@ -8,13 +8,16 @@ const nulluser = require('../lib/type').user()
 
 exports.createPlan = async (name, start_time, end_time, location, category, creator, gid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
+            console.log(creator)
             const [queryResult] = await db.query(
                 queryStr.newPlan,
                 [name, start_time, end_time, location, category, creator, gid, gid])
 
+            const [listResult] = await db.query(queryStr.listCurrentPlan, creator)
             db.release()
+            console.log(listResult)
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -36,7 +39,7 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
 
 exports.editPlan = async (pid, name, start_time, end_time, location, category, gid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             let queryResult
             [queryResult] = await db.query(

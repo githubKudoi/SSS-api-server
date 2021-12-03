@@ -65,11 +65,12 @@ exports.location = async (pid) => {
                 throw 0
             
             for (coord of coordinationResult) {
-                const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0])
+                const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
                 
                 httpRequest(kakaoPlaceOptions, (err, res, body) => {
                     if (!err && res.statusCode === 200) {
                         parsedBody = JSON.parse(body)
+                        
                         let eta = ''
                         const kakaoEtaOptions = kakao.kakaoEtaOptions(
                             coord.longitude,
