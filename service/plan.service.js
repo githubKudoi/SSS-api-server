@@ -166,7 +166,7 @@ exports.invitePlanAccept = async (pid, userid, is_accepted) => {
 
 exports.kickPlan = async (pid, target_userid_list) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             if (typeof target_userid_list == 'string') {
                 const [queryResult] = await db.query(queryStr.kickPlan, [pid, target_userid_list])
@@ -201,7 +201,7 @@ exports.kickPlan = async (pid, target_userid_list) => {
 
 exports.completePlan = async (pid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.completePlan, pid)
             db.release()
@@ -227,7 +227,7 @@ exports.completePlan = async (pid) => {
 
 exports.cancelPlan = async (pid, userid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.cancelPlan, [userid, pid])
             db.release()
@@ -252,7 +252,7 @@ exports.cancelPlan = async (pid, userid) => {
 
 exports.publicPlan = async (pid, visibility) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             let queryResult
             if (visibility == 'true')
@@ -282,7 +282,7 @@ exports.publicPlan = async (pid, visibility) => {
 
 exports.deletePlan = async (pid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.deletePlan, [pid, pid, pid])
             db.release()
@@ -308,7 +308,7 @@ exports.deletePlan = async (pid) => {
 
 exports.listPlan = async (userid, is_current, is_mine) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             let queryResult
             if (is_mine == 'false'){
@@ -337,7 +337,7 @@ exports.listPlan = async (userid, is_current, is_mine) => {
 
 exports.detailsPlan = async (pid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.detailsPlan, pid)
             db.release()
@@ -376,7 +376,7 @@ exports.detailsPlan = async (pid) => {
 
 exports.partlist = async (pid) => {
     try {
-        const db = await rds.getConnection(async conn => conn)
+        const db = await rds.getConnection()
         try {
             const [queryResult] = await db.query(queryStr.listParticipant, pid)
             db.release()

@@ -27,15 +27,3 @@ exports.location = async (req, res) => {
     
     res.json(serverResponse)
 }
-
-exports.eta = async (req, res) => {
-    const body = req.body
-    const serverResponse = await service.eta(   
-        body.start_latitude,
-        body.start_longitude,
-        body.destination_latitude,
-        body.destination_longitude
-    )
-    
-    res.json(serverResponse)
-}

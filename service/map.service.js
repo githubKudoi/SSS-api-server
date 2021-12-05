@@ -6,7 +6,6 @@ const httpRequest = require('request')
 const kakao = require('../lib/config/kakaomap')
 const type = require('../lib/type')
 
-let locationList = []
 const nullCoordination = require('../lib/type').coordination()
 
 exports.popularity = async (userid, response) => {
@@ -56,23 +55,25 @@ exports.location = async (pid) => {
     try {
         const db = await rds.getConnection()
         try {
+            const locationList = []
             let parsedBody = ''
+            let kakaoEtaOptions = ''
             const [placenameResult] = await db.query(queryStr.getPlace, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
             
             if (coordinationResult.length === 0)
                 throw 0
+
+            const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
             
-            for (coord of coordinationResult) {
-                const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
-                
-                httpRequest(kakaoPlaceOptions, (err, res, body) => {
-                    if (!err && res.statusCode === 200) {
-                        parsedBody = JSON.parse(body)
-                        
-                        let eta = ''
-                        const kakaoEtaOptions = kakao.kakaoEtaOptions(
+            httpRequest(kakaoPlaceOptions, (err, res, body) => {
+                if (!err && res.statusCode === 200) {
+                    parsedBody = JSON.parse(body)
+                    let eta = ''
+            
+                    for (let coord of coordinationResult) {
+                        kakaoEtaOptions = kakao.kakaoEtaOptions(
                             coord.longitude,
                             coord.latitude,
                             parsedBody.documents[0].x,
@@ -96,15 +97,16 @@ exports.location = async (pid) => {
                                     coord.longitude,
                                     eta))
                                 }
-                            else
-                            console.log(body)
+                            else {
+                                throw body
+                            }
                         })
                     }
-                })
-            }
-
-            const locationResult = locationList
-            locationList = []
+                }
+            })
+            const locationResult = locationList.slice()
+            locationList.splice(0, locationList.length)
+            console.log(res.locationResponse(0, locationResult))
             return res.locationResponse(0, locationResult)
         } catch (err) { 
             db.release()
@@ -113,25 +115,5 @@ exports.location = async (pid) => {
     } catch (err) {
         console.log(err)
         return res.locationResponse(-1, nullCoordination)
-    }
-}
-
-exports.eta = async (start_latitude, start_longitude, destination_latitude, destination_longitude) => {
-    try {
-        const reqestUrl = googleDistanceApiConfig.url +
-        "origins=" + start_latitude + "," + start_longitude +
-        "&destinations=" + destination_latitude + "," + destination_longitude +
-        "&region=" + googleDistanceApiConfig.region +
-        "&key=" + googleDistanceApiConfig.key
-
-        const result = axios.get(reqestUrl)
-        
-        if(result.data.status !== 'OK')
-            throw result.data.error_message
-
-        return res.timeResponse(0, result.data.rows[0].elements[0].duration.text)
-    } catch (err) {
-        console.log(err)
-        return res.timeResponse(-1)
     }
 }

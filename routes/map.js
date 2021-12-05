@@ -8,6 +8,5 @@ router.use(express.urlencoded({extended: false}))
 router.post('/popularity', controller.popularity)
 router.post('/location/set', controller.myLocation)
 router.post('/location', controller.location)
-router.post('/eta', controller.eta)
 
 module.exports = router
