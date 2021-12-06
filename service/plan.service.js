@@ -89,7 +89,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
                 fcm.send(pid, 'plan', userid, inviterResult[0].nickName, inviterPlanResult[0].name, targetResult[0].token)
 
                 const [queryResult] = await db.query(queryStr.invitePlan, [pid, target_userid_list, false, target_userid_list])
-
+                
                 if (queryResult.affectedRows == 0)
                     throw 1
             }
