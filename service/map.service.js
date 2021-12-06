@@ -66,18 +66,7 @@ exports.location = async (pid) => {
                 throw 0
 
             const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
-            axios({
-                url: 'https://dapi.kakao.com/v2/local/search/keyword.json',
-                method: 'GET',
-                headers: {
-                    'Authorization': 'KakaoAK d97ca341c7c43afebf7cc37610621a5d'
-                },
-                params: {
-                    'query' : placename
-                },
-            }).then((res)=>{
-                console.log(res.body)
-            })
+            
             httpRequest(kakaoPlaceOptions, (err, res, body) => {
                 if (!err && res.statusCode === 200) {
                     parsedBody = JSON.parse(body)
