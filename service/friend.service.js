@@ -40,10 +40,9 @@ exports.addFriend = async (userid, target_userid) => {
     try {
         const db = await rds.getConnection()
         try {
-            console.log(userid, target_userid)
             const [optionResult] = await db.query(queryStr.checkFriendInviteOption, [target_userid])
-            console.log(optionResult)
-            if (optionResult[0].friendInviteOption === 0)
+            
+            if (optionResult[0].friendInviteOption === 1)
                 throw 2
                 
             const [queryResult] = await db.query(queryStr.addFriend, [userid, target_userid, target_userid, userid, userid, target_userid])
