@@ -1,7 +1,6 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const axios = require('axios')
 const httpRequest = require('request')
 const kakao = require('../lib/config/kakaomap')
 const type = require('../lib/type')
@@ -91,11 +90,12 @@ exports.location = async (pid) => {
                                 else
                                     eta = minute + "분"
 
-                                locationList.push(type.location(
+                                let location = type.location(
                                     coord.nickName,
                                     coord.latitude,
                                     coord.longitude,
-                                    eta))
+                                    eta)
+                                locationList.push(location)
                                 }
                             else {
                                 throw body

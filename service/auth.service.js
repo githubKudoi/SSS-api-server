@@ -22,7 +22,7 @@ exports.login = async (userid, password, token) => {
 
             await db.query(queryStr.setOnline, userid)
             await db.query(queryStr.setToken, [token, userid, token])
-            
+
             return res.userResponse(0, result.user)
         } catch (err) {
             if (err == 1) {

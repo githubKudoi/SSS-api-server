@@ -17,7 +17,6 @@ exports.createPlan = async (name, start_time, end_time, location, category, crea
 
             const [listResult] = await db.query(queryStr.listCurrentPlan, creator)
             db.release()
-            console.log(listResult)
 
             if (queryResult.affectedRows == 0)
                 throw 1
@@ -95,7 +94,7 @@ exports.invitePlan = async (pid, userid, target_userid_list) => {
             }
             else {
                 for (let target_userid of target_userid_list) {
-                    const [optionResult] = await db.query(queryStr.checkOption, [target_userid])
+                    const [optionResult] = await db.query(queryStr.checkPlanInviteOption, [target_userid])
                 
                     if (optionResult[0].planInviteOption === 1)
                         continue
