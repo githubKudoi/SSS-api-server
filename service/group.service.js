@@ -76,10 +76,7 @@ exports.inviteGroup = async (gid, userid, target_userid_list) => {
 
                 fcm.send(gid, 'group', userid, inviterResult[0].nickName, inviterGroupResult[0].name, targetResult[0].token)
                 
-                const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid_list, gid])
-                
-                if (queryResult.affectedRows == 0)
-                    throw 1
+                const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid_list, gid, target_userid_list, gid])
             }
             else {
                 for (let target_userid of target_userid_list) {
@@ -94,10 +91,7 @@ exports.inviteGroup = async (gid, userid, target_userid_list) => {
                     
                     fcm.send(gid, 'group', userid, inviterResult[0].nickName, inviterGroupResult[0].name, targetResult[0].token)
 
-                    const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid, gid])
-                    
-                    if (queryResult.affectedRows == 0)
-                        throw 1
+                    const [queryResult] = await db.query(queryStr.inviteGroup, [target_userid, gid, target_userid, gid])
                 }
             }
             db.release()
