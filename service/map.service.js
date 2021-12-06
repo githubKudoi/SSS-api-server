@@ -2,6 +2,7 @@ const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
 const httpRequest = require('request')
+const axios = require('axios')
 const kakao = require('../lib/config/kakaomap')
 const type = require('../lib/type')
 
@@ -65,7 +66,18 @@ exports.location = async (pid) => {
                 throw 0
 
             const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
-            
+            axios({
+                url: 'https://dapi.kakao.com/v2/local/search/keyword.json',
+                method: 'GET',
+                headers: {
+                    'Authorization': 'KakaoAK d97ca341c7c43afebf7cc37610621a5d'
+                },
+                params: {
+                    'query' : placename
+                },
+            }).then((res)=>{
+                console.log(res.body)
+            })
             httpRequest(kakaoPlaceOptions, (err, res, body) => {
                 if (!err && res.statusCode === 200) {
                     parsedBody = JSON.parse(body)
@@ -78,6 +90,7 @@ exports.location = async (pid) => {
                             parsedBody.documents[0].x,
                             parsedBody.documents[0].y)
 
+                        
                         httpRequest(kakaoEtaOptions, (err, res, body) => {
                             if (!err && res.statusCode === 200) {
                                 parsedBody = JSON.parse(body)
@@ -101,6 +114,7 @@ exports.location = async (pid) => {
                                 throw body
                             }
                         })
+                        console.log(locationList)
                     }
                 }
             })
