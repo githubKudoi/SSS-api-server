@@ -1,7 +1,7 @@
 const rds = require('../lib/config/db')
 const queryStr = require('../lib/query')
 const res = require('../lib/res')
-const httpRequest = require('request')
+const httpRequest = require('request-promise')
 const axios = require('axios')
 const kakao = require('../lib/config/kakaomap')
 const type = require('../lib/type')
@@ -57,7 +57,6 @@ exports.location = async (pid) => {
         try {
             const locationList = []
             let parsedBody = ''
-            let kakaoEtaOptions = ''
             const [placenameResult] = await db.query(queryStr.getPlace, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
@@ -66,51 +65,43 @@ exports.location = async (pid) => {
                 throw 0
 
             const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
-            
-            httpRequest(kakaoPlaceOptions, (err, res, body) => {
-                if (!err && res.statusCode === 200) {
-                    parsedBody = JSON.parse(body)
-                    let eta = ''
-            
-                    for (let coord of coordinationResult) {
-                        kakaoEtaOptions = kakao.kakaoEtaOptions(
-                            coord.longitude,
-                            coord.latitude,
-                            parsedBody.documents[0].x,
-                            parsedBody.documents[0].y)
 
-                        
-                        httpRequest(kakaoEtaOptions, (err, res, body) => {
-                            if (!err && res.statusCode === 200) {
-                                parsedBody = JSON.parse(body)
-                                
-                                let minute = Math.floor((parsedBody.routes[0].summary.duration / 60) % 60)
-                                let time = Math.floor(parsedBody.routes[0].summary.duration / 3600)
+            const kakaoPlaceResult = await httpRequest(kakaoPlaceOptions)
+            parsedBody = JSON.parse(kakaoPlaceResult)
 
-                                if (time > 0)
-                                    eta = time + "시간 " + minute + "분"
-                                else
-                                    eta = minute + "분"
+            for (let coord of coordinationResult) {
+                const kakaoEtaOptions = kakao.kakaoEtaOptions(
+                    coord.longitude,
+                    coord.latitude,
+                    parsedBody.documents[0].x,
+                    parsedBody.documents[0].y)
 
-                                let location = type.location(
-                                    coord.nickName,
-                                    coord.latitude,
-                                    coord.longitude,
-                                    eta)
-                                locationList.push(location)
-                                }
-                            else {
-                                throw body
-                            }
-                        })
-                        console.log(locationList)
-                    }
+                const kakaoEtaResult = await httpRequest(kakaoEtaOptions)
+                parsedBody = JSON.parse(kakaoEtaResult)
+
+                const minute = Math.floor((parsedBody.routes[0].summary.duration / 60) % 60)
+                const time = Math.floor(parsedBody.routes[0].summary.duration / 3600)
+
+                if (time > 0)
+                    eta = time + "시간 " + minute + "분"
+                else
+                    eta = minute + "분"
+
+                let location = type.location(
+                    coord.nickName,
+                    coord.latitude,
+                    coord.longitude,
+                    eta)
+                    
+                locationList.push(location)
+                console.log(locationList)
                 }
-            })
-            const locationResult = locationList.slice()
-            locationList.splice(0, locationList.length)
-            console.log(res.locationResponse(0, locationResult))
-            return res.locationResponse(0, locationResult)
+
+            console.log(locationList)
+            
+            // const locationResult = locationList.slice()
+            // locationList.splice(0, locationList.length)
+            // return res.locationResponse(0, locationList)
         } catch (err) { 
             db.release()
             return res.locationResponse(0, nullCoordination)
