@@ -56,7 +56,6 @@ exports.location = async (pid) => {
         const db = await rds.getConnection()
         try {
             const locationList = []
-            let parsedBody = ''
             const [placenameResult] = await db.query(queryStr.getPlace, [pid])
             const [coordinationResult] = await db.query(queryStr.getLocation, [pid])
             db.release()
@@ -67,41 +66,34 @@ exports.location = async (pid) => {
             const kakaoPlaceOptions = kakao.kakaoPlaceOptions(placenameResult[0].location)
 
             const kakaoPlaceResult = await httpRequest(kakaoPlaceOptions)
-            parsedBody = JSON.parse(kakaoPlaceResult)
+            const parsedPlaceBody = JSON.parse(kakaoPlaceResult)
 
-            for (let coord of coordinationResult) {
+            for (const coord of coordinationResult) {
                 const kakaoEtaOptions = kakao.kakaoEtaOptions(
                     coord.longitude,
                     coord.latitude,
-                    parsedBody.documents[0].x,
-                    parsedBody.documents[0].y)
+                    parsedPlaceBody.documents[0].x,
+                    parsedPlaceBody.documents[0].y)
 
                 const kakaoEtaResult = await httpRequest(kakaoEtaOptions)
-                parsedBody = JSON.parse(kakaoEtaResult)
+                const parsedEtaBody = JSON.parse(kakaoEtaResult)
 
-                const minute = Math.floor((parsedBody.routes[0].summary.duration / 60) % 60)
-                const time = Math.floor(parsedBody.routes[0].summary.duration / 3600)
+                const minute = Math.floor((parsedEtaBody.routes[0].summary.duration / 60) % 60)
+                const time = Math.floor(parsedEtaBody.routes[0].summary.duration / 3600)
 
                 if (time > 0)
                     eta = time + "시간 " + minute + "분"
                 else
                     eta = minute + "분"
 
-                let location = type.location(
+                locationList.push(type.location(
                     coord.nickName,
                     coord.latitude,
                     coord.longitude,
-                    eta)
-                    
-                locationList.push(location)
-                console.log(locationList)
+                    eta))
                 }
-
-            console.log(locationList)
-            
-            // const locationResult = locationList.slice()
-            // locationList.splice(0, locationList.length)
-            // return res.locationResponse(0, locationList)
+                
+            return res.locationResponse(0, locationList)
         } catch (err) { 
             db.release()
             return res.locationResponse(0, nullCoordination)
